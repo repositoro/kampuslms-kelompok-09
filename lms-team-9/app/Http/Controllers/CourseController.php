@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCourseRequest;
+use App\Http\Requests\UpdateCourseRequest;
 use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -10,10 +12,22 @@ use Illuminate\Http\RedirectResponse;
 
 class CourseController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        // Ambil data asli database Vera beserta relasi dosennya
-        $courses = Course::with('lecturer')->latest()->get();
+        $courses = Course::query()
+            ->with('lecturer')
+            ->when($request->filled('q'), function ($query) use ($request) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('name', 'like', '%' . $request->q . '%')
+                      ->orWhere('code', 'like', '%' . $request->q . '%');
+                });
+            })
+            ->when($request->filled('status'), function ($query) use ($request) {
+                $query->where('status', $request->status);
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
         return view('courses.index', compact('courses'));
     }
@@ -26,18 +40,9 @@ class CourseController extends Controller
         return view('courses.create', compact('lecturers'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreCourseRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'code'        => 'required|string|unique:courses,code',
-            'name'        => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'sks'         => 'required|integer|min:1|max:6',
-            'lecturer_id' => 'required|exists:users,id',
-            'status'      => 'required|in:draft,active,archived',
-        ]);
-
-        Course::create($validated);
+        Course::create($request->validated());
 
         return redirect()->route('courses.index')->with('success', 'Mata Kuliah berhasil ditambahkan!');
     }
@@ -56,18 +61,9 @@ class CourseController extends Controller
         return view('courses.edit', compact('course', 'lecturers'));
     }
 
-    public function update(Request $request, Course $course): RedirectResponse
+    public function update(UpdateCourseRequest $request, Course $course): RedirectResponse
     {
-        $validated = $request->validate([
-            'code'        => 'required|string|unique:courses,code,' . $course->id,
-            'name'        => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'sks'         => 'required|integer|min:1|max:6',
-            'lecturer_id' => 'required|exists:users,id',
-            'status'      => 'required|in:draft,active,archived',
-        ]);
-
-        $course->update($validated);
+        $course->update($request->validated());
 
         return redirect()->route('courses.index')->with('success', 'Mata Kuliah berhasil diperbarui!');
     }

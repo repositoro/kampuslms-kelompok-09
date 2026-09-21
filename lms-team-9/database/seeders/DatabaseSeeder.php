@@ -33,14 +33,19 @@ class DatabaseSeeder extends Seeder
 
             foreach ($assignments as $assignment) {
                 foreach ($enrolledStudents->random(10) as $student) {
+                    $isLate = fake()->boolean(20); // 20% chance of being late
+                    $submittedAt = $isLate
+                        ? fake()->dateTimeBetween($assignment->due_at,$assignment->due_at->addDays(3))
+                        : fake()->dateTimeBetween($assignment->due_at->subWeek(), $assignment->due_at);
+                        
                     $submission = Submission::create([
                         'assignment_id' => $assignment->id,
                         'user_id' => $student->id,
                         'file_path' => 'submissions/dummy.pdf',
                         'original_name' => 'tugas.pdf',
                         'file_size' => 1024,
-                        'submitted_at' => now(),
-                        'is_late' => false,
+                        'submitted_at' => $submittedAt,
+                        'is_late' => $isLate,
                     ]);
 
                     Grade::create([
