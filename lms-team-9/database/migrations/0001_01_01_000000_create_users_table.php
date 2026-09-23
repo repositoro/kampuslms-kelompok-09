@@ -21,7 +21,6 @@ return new class extends Migration
             // Tambahan kolom role dan nim_nip agar seragam dengan tim
             $table->enum('role', ['admin', 'dosen', 'mahasiswa']);
             $table->string('nim_nip')->nullable()->unique();
-#table->softDeletes();
             $table->rememberToken();
             $table->timestamps();
         });

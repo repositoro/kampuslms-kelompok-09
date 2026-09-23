@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Database\QueryException;
 
 class UserController extends Controller
 {
@@ -105,11 +106,22 @@ class UserController extends Controller
     /**
      * Hapus pengguna dari database.
      */
-    public function destroy(User $user): RedirectResponse
+    public function destroy(User $user)
     {
-        $user->delete();
+        try {
+            $user->delete();
+            return redirect()->route('users.index')
+                ->with('success', 'Pengguna berhasil dihapus.'); 
+        } catch (QueryException $e) {
+            // Kode 23000 adalah error Integrity Constraint Violation (Foreign Key)
+            if ($e->getCode() == '23000') {
+                return redirect()->route('users.index')
+                    ->with('error', 'Dosen tidak dapat dihapus karena masih terikat dengan data mata kuliah.');
+            }
 
-        return redirect()->route('users.index')
-            ->with('success', 'Pengguna berhasil dihapus!');
+            // Tangani error database lainnya
+            return redirect()->route('users.index')
+                ->with('error', 'Terjadi kesalahan saat menghapus pengguna.');
+        }
     }
 }
