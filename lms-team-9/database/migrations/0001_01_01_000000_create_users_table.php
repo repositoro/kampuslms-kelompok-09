@@ -17,6 +17,11 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            
+            // Tambahan kolom role dan nim_nip agar seragam dengan tim
+            $table->enum('role', ['admin', 'dosen', 'mahasiswa']);
+            $table->string('nim_nip')->nullable()->unique();
+#table->softDeletes();
             $table->rememberToken();
             $table->timestamps();
         });
