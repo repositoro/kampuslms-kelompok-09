@@ -2,19 +2,39 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Database\QueryException;
 
 class UserController extends Controller
 {
     /**
-     * Tampilkan daftar seluruh pengguna.
+     * Tampilkan daftar seluruh pengguna dengan pencarian dan filter.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $users = User::latest()->get();
+        $query = User::latest();
+
+        // Filter pencarian berdasarkan nama atau email
+        if ($request->filled('search')) {
+            $cari = $request->search;
+            $query->where(function ($q) use ($cari) {
+                $q->where('name', 'like', '%' . $cari . '%')
+                  ->orWhere('email', 'like', '%' . $cari . '%');
+            });
+        }
+
+        // Filter role (admin / dosen / mahasiswa)
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }
+
+        // Paginate 15 per halaman, pertahankan query string (search & role)
+        $users = $query->paginate(15)->withQueryString();
 
         return view('users.index', compact('users'));
     }
@@ -30,23 +50,19 @@ class UserController extends Controller
     /**
      * Simpan pengguna baru ke database.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreUserRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
-            'role'     => 'required|in:admin,dosen,mahasiswa',
-        ]);
+        $data = $request->validated();
 
-        $user = new User();
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
-        $user->password = bcrypt($validated['password']);
-        $user->role = $validated['role']; // Eksplisit demi keamanan (Mass Assignment Avoidance)
+        $user           = new User();
+        $user->name     = $data['name'];
+        $user->email    = $data['email'];
+        $user->password = bcrypt($data['password']);
+        $user->role     = $data['role']; // Eksplisit — role tidak ada di fillable
         $user->save();
 
-        return redirect()->route('users.index')->with('success', 'Pengguna berhasil ditambahkan!');
+        return redirect()->route('users.index')
+            ->with('success', 'Pengguna berhasil ditambahkan!');
     }
 
     /**
@@ -68,36 +84,44 @@ class UserController extends Controller
     /**
      * Perbarui data pengguna di database.
      */
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
-        $validated = $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'role'  => 'required|in:admin,dosen,mahasiswa',
-        ]);
+        $data = $request->validated();
 
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
-        $user->role = $validated['role']; // Eksplisit demi keamanan
+        $user->name  = $data['name'];
+        $user->email = $data['email'];
+        $user->role  = $data['role']; // Eksplisit — role tidak ada di fillable
 
-        // Update password hanya jika diisi
-        if ($request->filled('password')) {
-            $request->validate(['password' => 'string|min:8']);
-            $user->password = bcrypt($request->password);
+        // Update password hanya jika diisi (nullable di Form Request)
+        if (!empty($data['password'])) {
+            $user->password = bcrypt($data['password']);
         }
 
         $user->save();
 
-        return redirect()->route('users.index')->with('success', 'Pengguna berhasil diperbarui!');
+        return redirect()->route('users.index')
+            ->with('success', 'Pengguna berhasil diperbarui!');
     }
 
     /**
      * Hapus pengguna dari database.
      */
-    public function destroy(User $user): RedirectResponse
+    public function destroy(User $user)
     {
-        $user->delete();
+        try {
+            $user->delete();
+            return redirect()->route('users.index')
+                ->with('success', 'Pengguna berhasil dihapus.'); 
+        } catch (QueryException $e) {
+            // Kode 23000 adalah error Integrity Constraint Violation (Foreign Key)
+            if ($e->getCode() == '23000') {
+                return redirect()->route('users.index')
+                    ->with('error', 'Dosen tidak dapat dihapus karena masih terikat dengan data mata kuliah.');
+            }
 
-        return redirect()->route('users.index')->with('success', 'Pengguna berhasil dihapus!');
+            // Tangani error database lainnya
+            return redirect()->route('users.index')
+                ->with('error', 'Terjadi kesalahan saat menghapus pengguna.');
+        }
     }
 }
