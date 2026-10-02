@@ -4,13 +4,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 #use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable; #softDeletes;
+    use HasApiTokens, HasFactory, Notifiable; #softDeletes;
+
 
     // SANGAT PENTING: 'role' DILARANG masuk fillable untuk mencegah mass assignment!
     protected $fillable = [
