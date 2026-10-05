@@ -45,7 +45,7 @@ class CourseController extends Controller
 
     public function store(StoreCourseRequest $request): RedirectResponse
     {
-        Course::create($request->validated());
+        Course::create($request->all());
 
         return redirect()->route('courses.index')
             ->with('success', 'Mata Kuliah berhasil ditambahkan!');

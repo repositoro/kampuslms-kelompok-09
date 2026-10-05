@@ -1,132 +1,82 @@
-<x-layout title="Edit Mata Kuliah">
-
-    <div class="mb-6">
-        <a href="{{ route('courses.index') }}"
-           class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
-            ← Kembali ke Daftar
-        </a>
-    </div>
-
-    <div class="mx-auto max-w-2xl rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 class="mb-6 text-xl font-bold text-gray-900">
-            Edit Mata Kuliah: <span class="text-slate-600">{{ $course->code }}</span>
-        </h1>
-
-        <form action="{{ route('courses.update', $course) }}" method="POST" novalidate>
-            @csrf
-            @method('PUT')
-
-            {{-- Kode Mata Kuliah --}}
-            <div class="mb-5">
-                <label for="code" class="mb-1 block text-sm font-medium text-gray-700">
-                    Kode Mata Kuliah <span class="text-red-500">*</span>
-                </label>
-                <input
-                    id="code" type="text" name="code"
-                    value="{{ old('code', $course->code) }}"
-                    class="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 @error('code') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                >
-                @error('code')
-                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Nama Mata Kuliah --}}
-            <div class="mb-5">
-                <label for="name" class="mb-1 block text-sm font-medium text-gray-700">
-                    Nama Mata Kuliah <span class="text-red-500">*</span>
-                </label>
-                <input
-                    id="name" type="text" name="name"
-                    value="{{ old('name', $course->name) }}"
-                    class="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 @error('name') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                >
-                @error('name')
-                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Deskripsi --}}
-            <div class="mb-5">
-                <label for="description" class="mb-1 block text-sm font-medium text-gray-700">
-                    Deskripsi
-                </label>
-                <textarea
-                    id="description" name="description" rows="3"
-                    class="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 @error('description') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                >{{ old('description', $course->description) }}</textarea>
-                @error('description')
-                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- SKS --}}
-            <div class="mb-5">
-                <label for="sks" class="mb-1 block text-sm font-medium text-gray-700">
-                    Jumlah SKS <span class="text-red-500">*</span>
-                </label>
-                <input
-                    id="sks" type="number" name="sks" min="1" max="6"
-                    value="{{ old('sks', $course->sks) }}"
-                    class="w-28 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 @error('sks') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                >
-                @error('sks')
-                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Dosen Pengampu --}}
-            <div class="mb-5">
-                <label for="lecturer_id" class="mb-1 block text-sm font-medium text-gray-700">
-                    Dosen Pengampu <span class="text-red-500">*</span>
-                </label>
-                <select
-                    id="lecturer_id" name="lecturer_id"
-                    class="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 @error('lecturer_id') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                >
-                    <option value="">-- Pilih Dosen --</option>
-                    @foreach ($lecturers as $lecturer)
-                        <option value="{{ $lecturer->id }}"
-                                {{ old('lecturer_id', $course->lecturer_id) == $lecturer->id ? 'selected' : '' }}>
-                            {{ $lecturer->name }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('lecturer_id')
-                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Status --}}
-            <div class="mb-7">
-                <label for="status" class="mb-1 block text-sm font-medium text-gray-700">
-                    Status <span class="text-red-500">*</span>
-                </label>
-                <select
-                    id="status" name="status"
-                    class="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 @error('status') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                >
-                    <option value="draft"    {{ old('status', $course->status) == 'draft'    ? 'selected' : '' }}>Draft</option>
-                    <option value="active"   {{ old('status', $course->status) == 'active'   ? 'selected' : '' }}>Aktif</option>
-                    <option value="archived" {{ old('status', $course->status) == 'archived' ? 'selected' : '' }}>Diarsipkan</option>
-                </select>
-                @error('status')
-                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Tombol Aksi --}}
-            <div class="flex items-center gap-3">
-                <button type="submit"
-                        class="rounded-md bg-slate-800 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-700">
-                    Perbarui
-                </button>
-                <a href="{{ route('courses.index') }}"
-                   class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    Batal
+<x-components.layout>
+    <div class="min-h-screen bg-slate-50 p-6 md:p-10 font-sans text-slate-800 flex items-center justify-center">
+        <div class="max-w-2xl w-full">
+            
+            <!-- Header -->
+            <div class="mb-8 text-center">
+                <a href="{{ route('courses.index') ?? '#' }}" class="inline-flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-700 mb-4 transition-colors">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Kembali ke Daftar
                 </a>
+                <h1 class="text-3xl font-extrabold tracking-tight text-slate-800">Edit Mata Kuliah</h1>
+                <p class="text-slate-500 mt-2">Perbarui informasi mata kuliah {{ $course->name ?? '' }}</p>
             </div>
-        </form>
-    </div>
 
-</x-layout>
+            <!-- Bento Form Card -->
+            <div class="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-100">
+                <form action="{{ isset($course) ? route('courses.update', $course->id) : '#' }}" method="POST" class="space-y-6">
+                    @csrf
+                    @method('PUT')
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Kode MK -->
+                        <div class="space-y-2">
+                            <label for="code" class="block text-sm font-semibold text-slate-700">Kode Mata Kuliah</label>
+                            <input type="text" name="code" id="code" value="{{ $course->code ?? '' }}" required
+                                class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none">
+                        </div>
+
+                        <!-- SKS -->
+                        <div class="space-y-2">
+                            <label for="sks" class="block text-sm font-semibold text-slate-700">Jumlah SKS</label>
+                            <input type="number" name="sks" id="sks" min="1" max="6" value="{{ $course->sks ?? '' }}" required
+                                class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Nama MK -->
+                    <div class="space-y-2">
+                        <label for="name" class="block text-sm font-semibold text-slate-700">Nama Mata Kuliah</label>
+                        <input type="text" name="name" id="name" value="{{ $course->name ?? '' }}" required
+                            class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none">
+                    </div>
+
+                    <!-- Deskripsi -->
+                    <div class="space-y-2">
+                        <label for="description" class="block text-sm font-semibold text-slate-700">Deskripsi</label>
+                        <textarea name="description" id="description" rows="4" 
+                            class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none resize-none">{{ $course->description ?? '' }}</textarea>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="space-y-2">
+                        <label for="status" class="block text-sm font-semibold text-slate-700">Status</label>
+                        <select name="status" id="status" class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none">
+                            <option value="active" {{ (isset($course) && $course->status == 'active') ? 'selected' : '' }}>Aktif</option>
+                            <option value="inactive" {{ (isset($course) && $course->status == 'inactive') ? 'selected' : '' }}>Tidak Aktif</option>
+                        </select>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-4 flex gap-4">
+                        <button type="submit" class="flex-1 py-4 rounded-2xl bg-indigo-600 text-white font-bold text-lg shadow-sm hover:bg-indigo-700 hover:shadow-md transition-all">
+                            Update Data
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Delete Form Separation -->
+                <div class="mt-6 pt-6 border-t border-slate-100">
+                    <form action="{{ isset($course) ? route('courses.destroy', $course->id) : '#' }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus mata kuliah ini?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="w-full py-3 rounded-2xl bg-red-50 text-red-600 font-semibold hover:bg-red-100 transition-colors">
+                            Hapus Mata Kuliah
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</x-components.layout>

@@ -17,14 +17,33 @@
                    class="hover:text-slate-300 {{ request()->routeIs('dashboard') ? 'font-bold' : '' }}">
                     Dashboard
                 </a>
-                <a href="{{ route('courses.index') }}"
-                   class="hover:text-slate-300 {{ request()->routeIs('courses.*') ? 'font-bold' : '' }}">
-                    Mata Kuliah
-                </a>
-                <a href="{{ route('users.index') }}"
-                   class="hover:text-slate-300 {{ request()->routeIs('users.*') ? 'font-bold' : '' }}">
-                    Pengguna
-                </a>
+
+                {{-- Nav berdasarkan peran user yang sedang login --}}
+                @auth
+                    @if (auth()->user()->role === 'admin')
+                        <a href="{{ route('admin.courses.index') }}"
+                           class="hover:text-slate-300 {{ request()->routeIs('admin.courses.*') ? 'font-bold' : '' }}">
+                            Mata Kuliah
+                        </a>
+                        <a href="{{ route('admin.users.index') }}"
+                           class="hover:text-slate-300 {{ request()->routeIs('admin.users.*') ? 'font-bold' : '' }}">
+                            Pengguna
+                        </a>
+
+                    @elseif (auth()->user()->role === 'dosen')
+                        <a href="{{ route('dosen.courses.index') }}"
+                           class="hover:text-slate-300 {{ request()->routeIs('dosen.courses.*') ? 'font-bold' : '' }}">
+                            Mata Kuliah Saya
+                        </a>
+
+                    @elseif (auth()->user()->role === 'mahasiswa')
+                        <a href="{{ route('mahasiswa.courses.index') }}"
+                           class="hover:text-slate-300 {{ request()->routeIs('mahasiswa.courses.*') ? 'font-bold' : '' }}">
+                            Mata Kuliah Saya
+                        </a>
+                    @endif
+                @endauth
+
                 <a href="{{ route('about') }}"
                    class="hover:text-slate-300 {{ request()->routeIs('about') ? 'font-bold' : '' }}">
                     Tentang
