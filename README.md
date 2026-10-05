@@ -1,59 +1,134 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Nama Project : LMS Team 9 #
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Daftar Anggota ##
+* Yiesan Daffa Azrikfi : 10241073
+* Zaskiya Salwa Nafitri : 10241077
+* Vera Friska : 10241073
+* Toro Ababil Tamami Darojat : 10241071
 
-## About Laravel
+Cara Instalasi Repository Github
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+-VSCode login pake akun github
+- Membuat Folder Kosong, lalu buka terminal
+```
+git clone https://github.com/ToroAbabil/kampuslms-kelompok-09
+```
+Cek Update dari Repository (Sebelum mengupload jalankan ini terlebih dahulu)
+```
+git pull origin main
+```
+Upload file ke repository
+```
+git add .
+git commit -m "komentar"
+git push origin main
+```
+## Cara Instalasi Laravel ##
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Prasyarat (Prerequisites) ###
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Agar mempermudah set up environment, kita menggunakan Laravel Herd (tersedia untuk manual)
+- Node.js & NPM (Bisa diaktifkan via menu *Node.js* di pengaturan Laravel Herd atau unduh versi LTS)
+- Git
+- Database: SQLite (default Laravel 12, langsung siap untuk digunakan tanpa perlu instalasi database terpisah) atau MySQL (opsional via XAMPP/Laragon)
 
-## Learning Laravel
+***
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Cara Instalasi dan Menjalankan Project Laravel
+Setelah melakukan clone repositoru, ikuti langkah-langkah berikut untuk menginstall dan menjalankan proyek lms-team-09:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 1. Masuk ke Direktori Project ###
+Buka terminal dan masuk ke folder project Laravel:
+```
+cd lms-team-09
+```
+### 2. Install Dependensi PHP (Composer) ###
+Jalankan perintah berikut untuk mengunduh semua package beckend:
+```
+composer install
+```
+### 3. Install Dependensi Frontend (NPM) ###
+Jalankan perintah berikut untuk mengunduh package frontend (Tailwind CSS, Vite, dll):
+```
+npm install
+```
+### 4. Buat File Environment (.env) ###
+Menyalin file template .env.example menjadi .env:
+- Windows (CMD):
+```
+copy .env.example .env
+```
+- Windows (Powershell) / Git Bash / Linux / Mac:
+```
+cp .env.example .env
+```
+### 5. Generate Application Key ### 
+Jalankan perintah berikut untuk membuat security key aplikasi:
+```
+php artisan key:generate
+```
+### 6. Konfigurasi Database dan Migrasi  ###
+Pilihan A: Menggunakan SQLite (default dan Paling Praktis)
+1. Buka file .env dan pastikan konfigurasi database:
+```
+DB_CONNECTION=sqlite
+```
+2. Jalankan migrasi database (Laravel akan otomatis menawarkan membuat file database.sqlite jika belum ada):
+```
+php artisan migrate
+```
+Pilihan B: Menggunakan MySQL (XAMPP/LARAGON)
+1. Nyalakan service Apache dan MySQL di XAMPP/Laragon.
+2. Buat database baru di phpMyAdmin (misalnya bernama laravel)
+3. Sesuaikan konfigurasi di file .env:
+```
+DB_CONNECTION=sqlite
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=root
+DB_PASSWORD=
+```
+4. Jalankan migrasi:
+```
+php artisan migrate
+```
+Jika ada dummy data atau seeder yang perlu dimasukkan:
+```
+php artisan migrate --seed
+```
+### 7. Menjalankan Server Development ###
+Opsi 1: Menggunakan Laravel Herd (Rekomendasi)
 
-## Laravel Sponsors
+ Jika folder project sudah berada di folder yang di-*Park* atau di-*Link* oleh Laravel Herd
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- Cukup jalankan asset compiler di terminal:
+```
+npm run dev
+```
+- Aplikasi otomatis dapat langsung diakses di browser melalui URL: http://lms-team-9.test/
 
-### Premium Partners
+Opsi 2: Menggunakan Composer Run Dev (All-in-One CLI)
+```
+composer run dev
+```
+*(Perintah ini akan menjalankan server backend, Vite frontend, queue, dan logger secara bersamaan).
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Opsi 3: Jalankan Terpisah di 2 Terminal 
+- Terminal 1 (Backend Laravel):
+```
+php artisan serve
+```
+- Terminal 2 (Frontend Vite):
+```
+npm run dev
+```
+Akses aplikasi di browser pada: http://localhost:8000 atau http://127.0.0.1:8000
 
-## Contributing
+***
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Pembagian Peran ##
+* Yiesan Daffa Azrikfi : 
+* Zaskiya Salwa Nafitri : 
+* Vera Friska : 
+* Toro Ababil Tamami Darojat : 
