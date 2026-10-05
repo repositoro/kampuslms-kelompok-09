@@ -19,20 +19,19 @@ use App\Http\Controllers\Mahasiswa\SubmissionController as MahasiswaSubmissionCo
 // ─────────────────────────────────────────────────────
 // Halaman Publik (tanpa autentikasi)
 // ─────────────────────────────────────────────────────
-Route::view('/', 'welcome')->name('dashboard');
+Route::view('/', 'welcome')->name('welcome');
 Route::view('/tentang', 'tentang')->name('about');
 
-Route::get('/login', function () {
-    return 'Halaman Login Sementara (Belum diimplementasikan). Silakan gunakan URL /login-sebagai/{id}';
-})->name('login');
-
+// Route Auth & Dashboard
+Route::view('/login', 'auth.login')->name('login');
+Route::view('/dashboard', 'home')->middleware('auth')->name('dashboard');
 
 // 🥷🏼 ──────────────────────────────────────────────────
 // JALUR PINTAS LOGIN & LOGOUT (HAPUS DI MINGGU 7 NANTI)
 // ─────────────────────────────────────────────────────
 Route::get('/login-sebagai/{id}', function ($id) {
     auth()->loginUsingId($id);
-    return redirect('/'); // Langsung balik ke halaman utama setelah login
+    return redirect('/dashboard'); // Langsung balik ke dashboard setelah login
 });
 
 Route::get('/logout-cepat', function () {
