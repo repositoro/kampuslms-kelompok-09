@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'welcome')->name('dashboard');
 Route::view('/tentang', 'tentang')->name('about');
 
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('courses', CourseController::class);
 });

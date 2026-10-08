@@ -12,6 +12,8 @@ class SubmissionController extends Controller
     public function index(Assignment $assignment)
     {
         // TODO(minggu 7): pindahkan ke Policy
+        abort_unless(auth()->user()->courses()->where('courses.id', $assignment->course_id)->exists(), 403);
+        
         $submissions = $assignment->submissions()->where('user_id', auth()->id())->get();
         return view('mahasiswa.submissions.index', compact('assignment', 'submissions'));
     }
@@ -19,12 +21,16 @@ class SubmissionController extends Controller
     public function create(Assignment $assignment)
     {
         // TODO(minggu 7): pindahkan ke Policy
+        abort_unless(auth()->user()->courses()->where('courses.id', $assignment->course_id)->exists(), 403);
+        
         return view('mahasiswa.submissions.create', compact('assignment'));
     }
 
     public function store(Request $request, Assignment $assignment)
     {
         // TODO(minggu 7): pindahkan ke Policy
+        abort_unless(auth()->user()->courses()->where('courses.id', $assignment->course_id)->exists(), 403);
+        
         $validated = $request->validate(['file_path' => 'required']);
         $validated['user_id'] = auth()->id();
         $assignment->submissions()->create($validated);
