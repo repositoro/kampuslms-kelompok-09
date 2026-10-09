@@ -21,7 +21,7 @@
                    class="hover:text-slate-300 {{ request()->routeIs('courses.*') ? 'font-bold' : '' }}">
                     Mata Kuliah
                 </a>
-                <a href="{{ route('users.index') }}"
+                <a href="{{ route('admin.users.index') }}"
                    class="hover:text-slate-300 {{ request()->routeIs('users.*') ? 'font-bold' : '' }}">
                     Pengguna
                 </a>

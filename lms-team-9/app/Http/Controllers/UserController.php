@@ -61,7 +61,7 @@ class UserController extends Controller
         $user->role     = $data['role']; // Eksplisit — role tidak ada di fillable
         $user->save();
 
-        return redirect()->route('users.index')
+        return redirect()->route('admin.users.index')
             ->with('success', 'Pengguna berhasil ditambahkan!');
     }
 
@@ -99,7 +99,7 @@ class UserController extends Controller
 
         $user->save();
 
-        return redirect()->route('users.index')
+        return redirect()->route('admin.users.index')
             ->with('success', 'Pengguna berhasil diperbarui!');
     }
 
@@ -110,17 +110,17 @@ class UserController extends Controller
     {
         try {
             $user->delete();
-            return redirect()->route('users.index')
+            return redirect()->route('admin.users.index')
                 ->with('success', 'Pengguna berhasil dihapus.'); 
         } catch (QueryException $e) {
             // Kode 23000 adalah error Integrity Constraint Violation (Foreign Key)
             if ($e->getCode() == '23000') {
-                return redirect()->route('users.index')
+                return redirect()->route('admin.users.index')
                     ->with('error', 'Dosen tidak dapat dihapus karena masih terikat dengan data mata kuliah.');
             }
 
             // Tangani error database lainnya
-            return redirect()->route('users.index')
+            return redirect()->route('admin.users.index')
                 ->with('error', 'Terjadi kesalahan saat menghapus pengguna.');
         }
     }
