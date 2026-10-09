@@ -1,7 +1,7 @@
 <x-layout title="Tambah Pengguna">
 
     <div class="mb-6">
-        <a href="{{ route('users.index') }}"
+        <a href="{{ route('admin.users.index') }}"
            class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
             ← Kembali ke Daftar
         </a>
@@ -10,7 +10,7 @@
     <div class="mx-auto max-w-2xl rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
         <h1 class="mb-6 text-xl font-bold text-gray-900">Tambah Pengguna Baru</h1>
 
-        <form action="{{ route('users.store') }}" method="POST" novalidate>
+        <form action="{{ route('admin.users.store') }}" method="POST" novalidate>
             @csrf
 
             {{-- Nama Lengkap --}}
@@ -85,7 +85,7 @@
                         class="rounded-md bg-slate-800 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-700">
                     Simpan
                 </button>
-                <a href="{{ route('users.index') }}"
+                <a href="{{ route('admin.users.index') }}"
                    class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                     Batal
                 </a>

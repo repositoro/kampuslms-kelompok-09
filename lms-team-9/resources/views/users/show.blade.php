@@ -7,7 +7,7 @@
     <p><strong>Terdaftar Pada:</strong> {{ $user->created_at->format('d M Y H:i') }}</p>
 
     <p>
-        <a href="{{ route('users.edit', $user) }}">Edit</a> |
-        <a href="{{ route('users.index') }}">Kembali ke Daftar</a>
+        <a href="{{ route('admin.users.edit', $user) }}">Edit</a> |
+        <a href="{{ route('admin.users.index') }}">Kembali ke Daftar</a>
     </p>
 </x-layout>

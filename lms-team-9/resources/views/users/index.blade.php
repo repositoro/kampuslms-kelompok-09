@@ -3,14 +3,14 @@
     {{-- Header --}}
     <div class="mb-6 flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-900">Daftar Pengguna</h1>
-        <a href="{{ route('users.create') }}"
+        <a href="{{ route('admin.users.create') }}"
            class="inline-flex items-center gap-1.5 rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
             + Tambah Pengguna
         </a>
     </div>
 
     {{-- Form Pencarian & Filter --}}
-    <form method="GET" action="{{ route('users.index') }}"
+    <form method="GET" action="{{ route('admin.users.index') }}"
           class="mb-5 flex flex-wrap items-center gap-3">
         <input
             type="text"
@@ -31,7 +31,7 @@
             Cari
         </button>
         @if (request('search') || request('role'))
-            <a href="{{ route('users.index') }}"
+            <a href="{{ route('admin.users.index') }}"
                class="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100">
                Reset
             </a>
@@ -53,7 +53,7 @@
                 @forelse ($users as $user)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-medium">
-                            <a href="{{ route('users.show', $user) }}"
+                            <a href="{{ route('admin.users.show', $user) }}"
                                class="text-slate-800 hover:text-slate-600 hover:underline">
                                 {{ $user->name }}
                             </a>
@@ -78,12 +78,12 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             <div class="inline-flex items-center gap-3">
-                                <a href="{{ route('users.edit', $user) }}"
+                                <a href="{{ route('admin.users.edit', $user) }}"
                                    class="text-sm font-medium text-slate-600 hover:text-slate-900 hover:underline">
                                     Edit
                                 </a>
                                 <button type="button"
-                                        onclick="bukaModalHapus('{{ route('users.destroy', $user) }}', '{{ addslashes($user->name) }}')"
+                                        onclick="bukaModalHapus('{{ route('admin.users.destroy', $user) }}', '{{ addslashes($user->name) }}')"
                                         class="text-sm font-medium text-red-600 hover:text-red-800 hover:underline">
                                     Hapus
                                 </button>
