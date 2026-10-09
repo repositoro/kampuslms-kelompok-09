@@ -2,82 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCourseRequest;
-use App\Http\Requests\UpdateCourseRequest;
 use App\Models\Course;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 
 class CourseController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request)
     {
-        $query = Course::with('lecturer')->latest();
+        $user = $request->user();
 
-        // Filter pencarian berdasarkan kode atau nama
-        if ($request->filled('search')) {
-            $cari = $request->search;
-            $query->where(function ($q) use ($cari) {
-                $q->where('code', 'like', '%' . $cari . '%')
-                  ->orWhere('name', 'like', '%' . $cari . '%');
-            });
-        }
-
-        // Filter status (draft / active / archived)
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Paginate 15 per halaman, pertahankan query string (search & status)
-        $courses = $query->paginate(15)->withQueryString();
+        // Penyaringan di level query menggunakan relasi Bagian 4.3
+        $courses = (match ($user->role) {
+            'admin'     => Course::query(),
+            'dosen'     => $user->taughtCourses(),
+            'mahasiswa' => $user->courses(),
+            default     => abort(403),
+        })->with('lecturer')->paginate(15);
 
         return view('courses.index', compact('courses'));
     }
 
-    public function create(): View
+    public function show(Course $course)
     {
-        $lecturers = User::where('role', 'dosen')->get();
-
-        return view('courses.create', compact('lecturers'));
-    }
-
-    public function store(StoreCourseRequest $request): RedirectResponse
-    {
-        Course::create($request->validated());
-
-        return redirect()->route('courses.index')
-            ->with('success', 'Mata Kuliah berhasil ditambahkan!');
-    }
-
-    public function show(Course $course): View
-    {
-        $course->load('lecturer');
-
+        Gate::authorize('view', $course);
         return view('courses.show', compact('course'));
     }
 
-    public function edit(Course $course): View
+    public function update(Request $request, Course $course)
     {
-        $lecturers = User::where('role', 'dosen')->get();
-
-        return view('courses.edit', compact('course', 'lecturers'));
+        Gate::authorize('update', $course);
+        $course->update($request->all());
+        return redirect()->route('courses.show', $course);
     }
 
-    public function update(UpdateCourseRequest $request, Course $course): RedirectResponse
+    public function destroy(Course $course)
     {
-        $course->update($request->validated());
-
-        return redirect()->route('courses.index')
-            ->with('success', 'Mata Kuliah berhasil diperbarui!');
-    }
-
-    public function destroy(Course $course): RedirectResponse
-    {
+        Gate::authorize('delete', $course);
         $course->delete();
-
-        return redirect()->route('courses.index')
-            ->with('success', 'Mata Kuliah berhasil dihapus!');
+        return redirect()->route('courses.index');
     }
 }

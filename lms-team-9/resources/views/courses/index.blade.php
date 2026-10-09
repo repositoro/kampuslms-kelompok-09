@@ -3,10 +3,14 @@
     {{-- Header --}}
     <div class="mb-6 flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-900">Daftar Mata Kuliah</h1>
-        <a href="{{ route('courses.create') }}"
-           class="inline-flex items-center gap-1.5 rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
-            + Tambah Mata Kuliah
-        </a>
+        
+        {{-- 1. Proteksi Tombol Tambah Mata Kuliah --}}
+        @can('create', App\Models\Course::class)
+            <a href="{{ route('courses.create') }}"
+               class="inline-flex items-center gap-1.5 rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
+                + Tambah Mata Kuliah
+            </a>
+        @endcan
     </div>
 
     {{-- Form Pencarian & Filter --}}
@@ -17,7 +21,7 @@
             name="search"
             value="{{ request('search') }}"
             placeholder="Cari kode atau nama…"
-            class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 w-60"
+            class="w-60 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
         >
         <select name="status"
                 class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500">
@@ -33,7 +37,7 @@
         @if (request('search') || request('status'))
             <a href="{{ route('courses.index') }}"
                class="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100">
-               Reset
+                Reset
             </a>
         @endif
     </form>
@@ -84,15 +88,29 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             <div class="inline-flex items-center gap-3">
-                                <a href="{{ route('courses.edit', $course) }}"
-                                   class="text-sm font-medium text-slate-600 hover:text-slate-900 hover:underline">
-                                    Edit
-                                </a>
-                                <button type="button"
-                                        onclick="bukaModalHapus('{{ route('courses.destroy', $course) }}', '{{ addslashes($course->name) }}')"
-                                        class="text-sm font-medium text-red-600 hover:text-red-800 hover:underline">
-                                    Hapus
-                                </button>
+                                {{-- 2. Proteksi Tombol Edit --}}
+                                @can('update', $course)
+                                    <a href="{{ route('courses.edit', $course) }}"
+                                       class="text-sm font-medium text-slate-600 hover:text-slate-900 hover:underline">
+                                        Edit
+                                    </a>
+                                @endcan
+
+                                {{-- 3. Proteksi Tombol Hapus --}}
+                                @can('delete', $course)
+                                    <button type="button"
+                                            onclick="bukaModalHapus('{{ route('courses.destroy', $course) }}', '{{ addslashes($course->name) }}')"
+                                            class="text-sm font-medium text-red-600 hover:text-red-800 hover:underline">
+                                        Hapus
+                                    </button>
+                                @endcan
+
+                                {{-- Tampilkan tanda strip jika tidak memiliki hak akses sama sekali --}}
+                                @cannot('update', $course)
+                                    @cannot('delete', $course)
+                                        <span class="text-xs text-gray-400">—</span>
+                                    @endcannot
+                                @endcannot
                             </div>
                         </td>
                     </tr>

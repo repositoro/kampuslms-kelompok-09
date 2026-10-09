@@ -12,28 +12,52 @@
         <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
             <span class="font-semibold text-lg">Kampus LMS</span>
 
-            <div class="flex gap-6 text-sm">
-                <a href="{{ route('dashboard') }}"
-                   class="hover:text-slate-300 {{ request()->routeIs('dashboard') ? 'font-bold' : '' }}">
-                    Dashboard
-                </a>
-                <a href="{{ route('courses.index') }}"
-                   class="hover:text-slate-300 {{ request()->routeIs('courses.*') ? 'font-bold' : '' }}">
-                    Mata Kuliah
-                </a>
-                <a href="{{ route('admin.users.index') }}"
-                   class="hover:text-slate-300 {{ request()->routeIs('users.*') ? 'font-bold' : '' }}">
-                    Pengguna
-                </a>
-                <a href="{{ route('about') }}"
-                   class="hover:text-slate-300 {{ request()->routeIs('about') ? 'font-bold' : '' }}">
-                    Tentang
-                </a>
+            <div class="flex items-center gap-6 text-sm">
+                @auth
+                    <a href="{{ route('dashboard') }}"
+                       class="hover:text-slate-300 {{ request()->routeIs('dashboard') ? 'font-bold' : '' }}">
+                        Dashboard
+                    </a>
+                    <a href="{{ route('courses.index') }}"
+                       class="hover:text-slate-300 {{ request()->routeIs('courses.*') ? 'font-bold' : '' }}">
+                        Mata Kuliah
+                    </a>
+
+                    {{-- 1. Proteksi Link Kelola Pengguna Khusus Admin --}}
+                    @can('viewAny', App\Models\User::class)
+                        <a href="{{ route('admin.users.index') }}"
+                           class="hover:text-slate-300 {{ request()->routeIs('admin.users.*') ? 'font-bold' : '' }}">
+                            Pengguna
+                        </a>
+                    @endcan
+
+                    <a href="{{ route('about') }}"
+                       class="hover:text-slate-300 {{ request()->routeIs('about') ? 'font-bold' : '' }}">
+                        Tentang
+                    </a>
+
+                    {{-- 2. Form Logout --}}
+                    <form action="{{ route('logout') }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="text-red-400 hover:text-red-300 font-medium">
+                            Keluar
+                        </button>
+                    </form>
+                @else
+                    <a href="{{ route('about') }}"
+                       class="hover:text-slate-300 {{ request()->routeIs('about') ? 'font-bold' : '' }}">
+                        Tentang
+                    </a>
+                    <a href="{{ route('login') }}"
+                       class="rounded-md bg-slate-700 px-3 py-1.5 font-medium hover:bg-slate-600">
+                        Masuk
+                    </a>
+                @endauth
             </div>
         </div>
     </nav>
 
-    {{-- Flash message global — berlaku untuk seluruh halaman --}}
+    {{-- Flash message global --}}
     @if (session('success'))
         <div class="max-w-5xl mx-auto px-4 pt-4">
             <div class="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">

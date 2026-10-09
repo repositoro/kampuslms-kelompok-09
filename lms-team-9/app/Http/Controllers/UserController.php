@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Gate; // 1. Import Facade Gate
 
 class UserController extends Controller
 {
@@ -17,6 +18,8 @@ class UserController extends Controller
      */
     public function index(Request $request): View
     {
+        Gate::authorize('viewAny', User::class); // 2. Otorisasi melihat daftar pengguna
+
         $query = User::latest();
 
         // Filter pencarian berdasarkan nama atau email
@@ -44,6 +47,8 @@ class UserController extends Controller
      */
     public function create(): View
     {
+        Gate::authorize('create', User::class); // 3. Otorisasi buka form tambah
+
         return view('users.create');
     }
 
@@ -52,6 +57,8 @@ class UserController extends Controller
      */
     public function store(StoreUserRequest $request): RedirectResponse
     {
+        Gate::authorize('create', User::class); // 4. Otorisasi simpan data baru
+
         $data = $request->validated();
 
         $user           = new User();
@@ -70,6 +77,8 @@ class UserController extends Controller
      */
     public function show(User $user): View
     {
+        Gate::authorize('view', $user); // 5. Otorisasi lihat detail pengguna spesifik
+
         return view('users.show', compact('user'));
     }
 
@@ -78,6 +87,8 @@ class UserController extends Controller
      */
     public function edit(User $user): View
     {
+        Gate::authorize('update', $user); // 6. Otorisasi buka form edit
+
         return view('users.edit', compact('user'));
     }
 
@@ -86,6 +97,8 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
+        Gate::authorize('update', $user); // 7. Otorisasi simpan pembaruan data
+
         $data = $request->validated();
 
         $user->name  = $data['name'];
@@ -108,6 +121,8 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        Gate::authorize('delete', $user); // 8. Otorisasi hapus data
+
         try {
             $user->delete();
             return redirect()->route('admin.users.index')

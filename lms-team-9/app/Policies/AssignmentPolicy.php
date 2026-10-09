@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\Assignment;
+use App\Models\Course;
+use App\Models\User;
+
+class AssignmentPolicy
+{
+    public function view(User $user, Assignment $assignment): bool
+    {
+        return $user->can('view', $assignment->course);
+    }
+
+    public function create(User $user, Course $course): bool
+    {
+        return $user->role === 'admin' || $course->lecturer_id === $user->id;
+    }
+
+    public function update(User $user, Assignment $assignment): bool
+    {
+        return $user->role === 'admin' || $assignment->course->lecturer_id === $user->id;
+    }
+
+    public function delete(User $user, Assignment $assignment): bool
+    {
+        return $this->update($user, $assignment);
+    }
+}
