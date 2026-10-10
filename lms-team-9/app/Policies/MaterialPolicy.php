@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Policies;
 
 use App\Models\Course;
@@ -14,12 +15,14 @@ class MaterialPolicy
 
     public function create(User $user, Course $course): bool
     {
-        return $user->role === 'admin' || $course->lecturer_id === $user->id;
+        return $user->role === 'admin'
+            || ($user->role === 'dosen' && $course->lecturer_id === $user->id);
     }
 
     public function update(User $user, Material $material): bool
     {
-        return $user->role === 'admin' || $material->course->lecturer_id === $user->id;
+        return $user->role === 'admin'
+            || ($user->role === 'dosen' && $material->course->lecturer_id === $user->id);
     }
 
     public function delete(User $user, Material $material): bool

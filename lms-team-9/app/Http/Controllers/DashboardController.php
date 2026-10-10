@@ -15,20 +15,20 @@ class DashboardController extends Controller
         $user = $request->user();
 
         return match ($user->role) {
-            'admin'     => $this->adminDashboard(),
-            'dosen'     => $this->dosenDashboard($user),
+            'admin' => $this->adminDashboard(),
+            'dosen' => $this->dosenDashboard($user),
             'mahasiswa' => $this->mahasiswaDashboard($user),
-            default     => abort(403),
+            default => abort(403),
         };
     }
 
     private function adminDashboard()
     {
         $stats = [
-            'total_users'   => User::count(),
+            'total_users' => User::count(),
             'total_courses' => Course::count(),
-            'total_dosen'   => User::where('role', 'dosen')->count(),
-            'total_mhs'     => User::where('role', 'mahasiswa')->count(),
+            'total_dosen' => User::where('role', 'dosen')->count(),
+            'total_mhs' => User::where('role', 'mahasiswa')->count(),
         ];
 
         return view('dashboard.admin', compact('stats'));
@@ -58,11 +58,17 @@ class DashboardController extends Controller
         $upcomingAssignments = Assignment::whereHas('course.students', function ($q) use ($user) {
             $q->where('users.id', $user->id);
         })
-        ->where('status', 'published')
-        ->where('due_at', '>=', now())
-        ->orderBy('due_at', 'asc')
-        ->take(5)
-        ->get();
+            ->with([
+                'course',
+                'submissions' => fn ($query) => $query
+                    ->where('user_id', $user->id)
+                    ->with('grade'),
+            ])
+            ->where('status', 'published')
+            ->where('due_at', '>=', now())
+            ->orderBy('due_at', 'asc')
+            ->take(5)
+            ->get();
 
         return view('dashboard.mahasiswa', compact('courses', 'upcomingAssignments'));
     }

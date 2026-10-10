@@ -24,4 +24,28 @@ class AssignmentFactory extends Factory
             'status' => $this->faker->randomElement(['draft', 'published']),
         ];
     }
+
+    public function overdue(): static
+    {
+        return $this->state(fn () => [
+            'due_at' => now()->subDay(),
+            'status' => 'published',
+        ]);
+    }
+
+    public function active(): static
+    {
+        return $this->state(fn () => [
+            'due_at' => now()->addWeek(),
+            'status' => 'published',
+        ]);
+    }
+
+    public function draft(): static
+    {
+        return $this->state(fn () => [
+            'due_at' => now()->addWeek(),
+            'status' => 'draft',
+        ]);
+    }
 }

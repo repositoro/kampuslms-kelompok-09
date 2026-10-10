@@ -1,43 +1,56 @@
 <?php
+
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Models\Submission;
-use App\Models\Grade;
+use App\Http\Requests\GradeRequest;
 use App\Http\Resources\GradeResource;
-use App\Http\Requests\StoreGradeRequest;
-use App\Http\Requests\UpdateGradeRequest;
+use App\Models\Grade;
+use App\Models\Submission;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class GradeController extends Controller
 {
-    public function store(StoreGradeRequest $request, Submission $submission)
+    public function store(GradeRequest $request, Submission $submission)
     {
-        $course = $submission->assignment->course;
-        abort_unless($request->user()->role === 'dosen' && $course->lecturer_id === $request->user()->id, 403, 'This action is unauthorized.');
-        
-        $data = $request->validated();
-        $data['graded_by'] = $request->user()->id;
-        $grade = $submission->grade()->create($data);
-        return new GradeResource($grade);
+        return $this->upsert($request, $submission);
     }
 
-    public function update(UpdateGradeRequest $request, Submission $submission)
+    public function update(GradeRequest $request, Submission $submission)
     {
-        $course = $submission->assignment->course;
-        abort_unless($request->user()->role === 'dosen' && $course->lecturer_id === $request->user()->id, 403, 'This action is unauthorized.');
-        
-        $grade = $submission->grade;
-        if (!$grade) abort(404);
-        
-        $grade->update($request->validated());
-        return new GradeResource($grade);
+        return $this->upsert($request, $submission);
+    }
+
+    private function upsert(GradeRequest $request, Submission $submission)
+    {
+        Gate::authorize('create', [Grade::class, $submission]);
+        $created = ! $submission->grade()->exists();
+        $data = $request->validated();
+
+        $grade = Grade::updateOrCreate(
+            ['submission_id' => $submission->id],
+            [
+                'graded_by' => $request->user()->id,
+                'score' => $data['score'],
+                'feedback' => $data['feedback'] ?? null,
+                'graded_at' => now(),
+            ],
+        );
+
+        return (new GradeResource($grade))
+            ->response()
+            ->setStatusCode($created ? 201 : 200);
     }
 
     public function show(Request $request, Submission $submission)
     {
         $grade = $submission->grade;
-        if (!$grade) abort(404);
+        if (! $grade) {
+            abort(404);
+        }
+        Gate::authorize('view', $grade);
+
         return new GradeResource($grade);
     }
 }

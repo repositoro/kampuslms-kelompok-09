@@ -17,12 +17,13 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            
+
             // Tambahan kolom role dan nim_nip agar seragam dengan tim
-            $table->enum('role', ['admin', 'dosen', 'mahasiswa']);
+            $table->enum('role', ['admin', 'dosen', 'mahasiswa'])->index();
             $table->string('nim_nip')->nullable()->unique();
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
