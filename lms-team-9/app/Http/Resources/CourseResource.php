@@ -23,3 +23,4 @@ class CourseResource extends JsonResource
         ];
     }
 }
+
