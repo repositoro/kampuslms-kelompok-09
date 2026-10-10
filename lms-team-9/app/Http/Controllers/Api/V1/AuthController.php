@@ -47,17 +47,15 @@ class AuthController extends Controller
         return response()->json(null, 204);
     }
 
+   // Menampilkan profil pengguna yang sedang login (API)
     public function me(Request $request)
     {
-        return new UserResource($request->user());
-    }
-        {
         return response()->json([
             'data' => [
-                'id' => $request->user()->id,
-                'name' => $request->user()->name,
+                'id'    => $request->user()->id,
+                'name'  => $request->user()->name,
                 'email' => $request->user()->email,
-                'role' => $request->user()->role,
+                'role'  => $request->user()->role,
             ]
         ]);
     }
