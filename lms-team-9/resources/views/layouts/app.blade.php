@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'KampusLMS' }}</title>
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    @vite(['resources/css/app.css'])
 </head>
 <body>
     @auth
         <div class="app-shell">
             <aside class="sidebar" aria-label="Navigasi utama">
-                <a class="brand" href="{{ route('dashboard') }}">
-                    <span class="brand-mark" aria-hidden="true">K</span>
-                    <span>Kampus<span class="brand-accent">LMS</span></span>
-                </a>
+                <x-logo :href="route('dashboard')" />
 
                 <details class="mobile-navigation">
                     <summary>Menu navigasi</summary>
@@ -73,11 +69,13 @@
                     @endif
                     {{ $slot }}
                 </main>
+                <footer class="content"><span>KampusLMS · Sistem Pembelajaran Perkuliahan</span></footer>
             </div>
         </div>
     @else
         <div class="guest-shell">
             <main class="guest-content">
+                <x-logo class="guest-brand" :href="url('/')" />
                 @if (session('success'))
                     <x-alert variant="success">{{ session('success') }}</x-alert>
                 @endif
