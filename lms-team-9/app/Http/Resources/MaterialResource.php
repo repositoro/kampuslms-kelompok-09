@@ -16,7 +16,7 @@ class MaterialResource extends JsonResource
             'description' => $this->description,
             'type' => $this->type,
             'file_url' => $this->type === 'file' ? route('api.v1.materials.download', $this->resource) : null,
-            'external_url' => $this->external_url,
+            'external_url' => $this->resource->safeExternalUrl(),
             'original_name' => $this->original_name,
             'file_size' => $this->file_size,
             'mime_type' => $this->mime_type,

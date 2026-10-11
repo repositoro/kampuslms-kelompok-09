@@ -19,7 +19,7 @@ class AuthController extends Controller
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Validation failed.',
+                'message' => 'Data yang diberikan tidak valid.',
                 'errors' => [
                     'email' => ['The provided credentials do not match our records.']
                 ]

@@ -72,4 +72,38 @@ class AssignmentCrudTest extends TestCase
         $this->deleteJson("/api/v1/assignments/{$assignment->id}")->assertForbidden();
         $this->assertDatabaseHas('assignments', ['id' => $assignment->id]);
     }
+
+    public function test_assignment_collection_supports_status_filter_without_exposing_drafts_to_students(): void
+    {
+        $lecturer = User::factory()->create(['role' => 'dosen']);
+        $student = User::factory()->create(['role' => 'mahasiswa']);
+        $course = Course::factory()->create(['lecturer_id' => $lecturer->id]);
+        $course->students()->attach($student->id, ['enrolled_at' => now()]);
+        Assignment::factory()->draft()->create([
+            'course_id' => $course->id,
+            'created_by' => $lecturer->id,
+        ]);
+        Assignment::factory()->active()->create([
+            'course_id' => $course->id,
+            'created_by' => $lecturer->id,
+        ]);
+
+        Sanctum::actingAs($lecturer);
+        $this->getJson("/api/v1/courses/{$course->id}/assignments?status=draft")
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.status', 'draft');
+        $this->getJson("/api/v1/courses/{$course->id}/assignments?status=invalid")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('status');
+
+        Sanctum::actingAs($student);
+        $this->getJson("/api/v1/courses/{$course->id}/assignments?status=draft")
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+        $this->getJson("/api/v1/courses/{$course->id}/assignments?status=published")
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.status', 'published');
+    }
 }

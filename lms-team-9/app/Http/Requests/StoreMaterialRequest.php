@@ -31,6 +31,7 @@ class StoreMaterialRequest extends FormRequest
                 Rule::requiredIf(fn () => $this->input('type') === 'link'),
                 'nullable',
                 'url',
+                'regex:/\Ahttps?:\/\//i',
                 'max:2048',
             ],
         ];

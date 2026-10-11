@@ -20,6 +20,19 @@ class ApiErrorFormatTest extends TestCase
             ->assertJsonStructure(['message', 'errors' => ['email', 'password']]);
     }
 
+    public function test_invalid_login_credentials_use_the_api_contract_validation_message(): void
+    {
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+
+        $this->postJson('/api/v1/auth/login', [
+            'email' => $user->email,
+            'password' => 'incorrect-password',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Data yang diberikan tidak valid.')
+            ->assertJsonStructure(['message', 'errors' => ['email']]);
+    }
+
     public function test_authorization_errors_use_the_api_contract_message(): void
     {
         $lecturer = User::factory()->create(['role' => 'dosen']);

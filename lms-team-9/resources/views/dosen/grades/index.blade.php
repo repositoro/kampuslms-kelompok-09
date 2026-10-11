@@ -1,27 +1,28 @@
 <x-layout title="Rekap Nilai">
-    <h1 class="mb-4 text-xl font-bold">Rekap Nilai: {{ $course->name }}</h1>
-    <table class="w-full border-collapse text-left text-sm">
-        <thead>
-            <tr class="border-b">
-                <th class="p-2">Tugas</th>
-                <th class="p-2">Mahasiswa</th>
-                <th class="p-2">Nilai</th>
-                <th class="p-2">Feedback</th>
-                <th class="p-2">Tanggal penilaian</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($grades as $grade)
-                <tr class="border-b">
-                    <td class="p-2">{{ $grade->submission->assignment->title }}</td>
-                    <td class="p-2">{{ $grade->submission->student->name }}</td>
-                    <td class="p-2">{{ $grade->score }}</td>
-                    <td class="p-2">{{ $grade->feedback ?? '—' }}</td>
-                    <td class="p-2">{{ $grade->graded_at->format('d M Y, H:i') }}</td>
-                </tr>
-            @empty
-                <tr><td colspan="5" class="p-2 text-gray-500">Belum ada nilai.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+    <x-breadcrumb><a href="{{ route('courses.show', $course) }}">{{ $course->name }}</a><span>Rekap nilai</span></x-breadcrumb>
+    <x-page-header title="Rekap nilai" subtitle="{{ $course->name }} · {{ $course->code }}" />
+    <x-tabs :tabs="[
+        ['label' => 'Ringkasan', 'route' => 'courses.show', 'parameters' => [$course]],
+        ['label' => 'Materi', 'route' => 'dosen.courses.materials.index', 'parameters' => [$course], 'active' => 'dosen.courses.materials.*'],
+        ['label' => 'Tugas', 'route' => 'dosen.courses.assignments.index', 'parameters' => [$course], 'active' => 'dosen.courses.assignments.*'],
+        ['label' => 'Rekap nilai', 'route' => 'dosen.courses.grades.index', 'parameters' => [$course], 'active' => 'dosen.courses.grades.*'],
+    ]" />
+    <x-card title="Nilai yang sudah diberikan">
+        <x-table>
+            <thead><tr><th>Tugas</th><th>Mahasiswa</th><th>Nilai</th><th>Umpan balik</th><th>Tanggal penilaian</th></tr></thead>
+            <tbody>
+                @forelse ($grades as $grade)
+                    <tr>
+                        <td data-label="Tugas">{{ $grade->submission->assignment->title }}</td>
+                        <td data-label="Mahasiswa">{{ $grade->submission->student->name }}</td>
+                        <td data-label="Nilai"><x-badge variant="success">{{ $grade->score }} / {{ $grade->submission->assignment->max_score }}</x-badge></td>
+                        <td data-label="Umpan balik">{{ $grade->feedback ?: '—' }}</td>
+                        <td data-label="Tanggal penilaian">{{ $grade->graded_at->format('d M Y, H:i') }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="5"><x-empty-state title="Belum ada nilai di mata kuliah ini" /></td></tr>
+                @endforelse
+            </tbody>
+        </x-table>
+    </x-card>
 </x-layout>

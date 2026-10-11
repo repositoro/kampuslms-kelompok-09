@@ -41,7 +41,6 @@ class AssignmentPolicy
 
     public function deleteApi(User $user, Assignment $assignment): bool
     {
-        return $user->role === 'dosen'
-            && $assignment->course->lecturer_id === $user->id;
+        return $this->delete($user, $assignment);
     }
 }

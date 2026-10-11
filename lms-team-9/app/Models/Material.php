@@ -20,4 +20,13 @@ class Material extends Model
     {
         return $this->belongsTo(User::class, 'uploaded_by');
     }
+
+    public function safeExternalUrl(): ?string
+    {
+        $scheme = parse_url($this->external_url ?? '', PHP_URL_SCHEME);
+
+        return in_array(strtolower((string) $scheme), ['http', 'https'], true)
+            ? $this->external_url
+            : null;
+    }
 }
