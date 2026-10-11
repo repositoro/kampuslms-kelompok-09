@@ -62,4 +62,4 @@ jobs:
 
       - name: Run tests
         working-directory: lms-team-9
-        run: php artisan test --no-interaction
+        run: php artisan test
