@@ -3,38 +3,47 @@
 namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreAssignmentRequest;
+use App\Http\Requests\UpdateAssignmentRequest;
 use App\Models\Assignment;
 use App\Models\Course;
-use Illuminate\Http\Request;
+use App\Models\Submission;
 use Illuminate\Support\Facades\Gate;
 
 class AssignmentController extends Controller
 {
+    public function index(Course $course)
+    {
+        Gate::authorize('view', $course);
+        $assignments = $course->assignments()->with('course');
+        if (auth()->user()->role === 'mahasiswa') {
+            $assignments
+                ->where('status', 'published')
+                ->with(['submissions' => fn ($query) => $query
+                    ->where('user_id', auth()->id())
+                    ->with('grade')]);
+        }
+        $assignments = $assignments->withCount(['submissions', 'grades'])->latest()->paginate(15);
+
+        return view('dosen.assignments.index', compact('course', 'assignments'));
+    }
+
     // Menampilkan formulir pembuat tugas baru
     public function create(Course $course)
     {
         // Otorisasi: Dosen hanya bisa menambah tugas di kelasnya sendiri
-        Gate::authorize('update', $course);
+        Gate::authorize('create', [Assignment::class, $course]);
 
         return view('dosen.assignments.create', compact('course'));
     }
 
     // Menyimpan data tugas perkuliahan (metadata) ke database
-    public function store(Request $request, Course $course)
+    public function store(StoreAssignmentRequest $request, Course $course)
     {
-        // Otorisasi IDOR: Cegah manipulasi course_id dari input URL
-        Gate::authorize('update', $course);
-
-        // Validasi metadata tugas
-        $validated = $request->validate([
-            'title'       => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'due_at'      => ['required', 'date', 'after:now'],
-            'status'      => ['required', 'in:draft,published'],
+        $course->assignments()->create([
+            ...$request->validated(),
+            'created_by' => $request->user()->id,
         ]);
-
-        // Simpan tugas melalui relasi Course
-        $course->assignments()->create($validated);
 
         return redirect()->route('courses.show', $course)
             ->with('success', 'Tugas berhasil dibuat.');
@@ -43,13 +52,35 @@ class AssignmentController extends Controller
     // Menampilkan detail tugas beserta pengumpulan (submissions) mahasiswa
     public function show(Assignment $assignment)
     {
-        // Otorisasi: Validasi hak akses melihat tugas
         Gate::authorize('view', $assignment);
+        $assignment->load('course');
+        $user = auth()->user();
+        $submission = null;
+        $canSubmit = false;
 
-        // Eager loading relasi submission, mahasiswa, dan nilai untuk optimalisasi query
-        $assignment->load(['submissions.student', 'submissions.grade']);
+        if ($user->role === 'mahasiswa') {
+            $submission = $assignment->submissions()
+                ->where('user_id', $user->id)
+                ->with('grade')
+                ->first();
+            $canSubmit = Gate::allows('create', [Submission::class, $assignment])
+                && ($assignment->allow_late || now()->lessThanOrEqualTo($assignment->due_at))
+                && ! $submission?->grade;
+        } else {
+            $assignment->load(['submissions.student', 'submissions.grade']);
+            $submissionCount = $assignment->submissions->count();
+            $gradedSubmissionCount = $assignment->submissions->filter(fn ($submission) => $submission->grade !== null)->count();
+        }
+        $submissionCount ??= 0;
+        $gradedSubmissionCount ??= 0;
 
-        return view('dosen.assignments.show', compact('assignment'));
+        return view('dosen.assignments.show', compact(
+            'assignment',
+            'submission',
+            'canSubmit',
+            'submissionCount',
+            'gradedSubmissionCount',
+        ));
     }
 
     // Menampilkan formulir edit tugas (Shallow Route)
@@ -62,19 +93,9 @@ class AssignmentController extends Controller
     }
 
     // Memperbarui metadata tugas perkuliahan
-    public function update(Request $request, Assignment $assignment)
+    public function update(UpdateAssignmentRequest $request, Assignment $assignment)
     {
-        // Otorisasi IDOR
-        Gate::authorize('update', $assignment);
-
-        $validated = $request->validate([
-            'title'       => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'due_at'      => ['required', 'date'],
-            'status'      => ['required', 'in:draft,published'],
-        ]);
-
-        $assignment->update($validated);
+        $assignment->update($request->validated());
 
         return redirect()->route('courses.show', $assignment->course_id)
             ->with('success', 'Tugas berhasil diperbarui.');

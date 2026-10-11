@@ -1,13 +1,14 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\AssignmentController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CourseController;
-use App\Http\Controllers\Api\V1\MaterialController;
-use App\Http\Controllers\Api\V1\AssignmentController;
-use App\Http\Controllers\Api\V1\SubmissionController;
 use App\Http\Controllers\Api\V1\GradeController;
+use App\Http\Controllers\Api\V1\MaterialController;
+use App\Http\Controllers\Api\V1\SubmissionController;
+use App\Http\Controllers\MaterialDownloadController;
+use App\Http\Controllers\SubmissionDownloadController;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
     // Public routes (Auth)
@@ -16,12 +17,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     // Protected routes
     Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
-        Route::get('/auth/me', [AuthController::class, 'me'])->name('auth.me');
-
-        // Route Debug Peragaan Kebocoran Model Mentah
-        Route::get('/debug/raw-users', function () {
-            return response()->json(\App\Models\User::all());
-        });
+        Route::get('/me', [AuthController::class, 'me'])->name('me');
 
         // Course endpoints
         Route::apiResource('courses', CourseController::class);
@@ -29,10 +25,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         // Nested endpoints with shallow and scope bindings
         Route::scopeBindings()->group(function () {
             Route::apiResource('courses.materials', MaterialController::class)->shallow();
+            Route::get('/materials/{material}/download', MaterialDownloadController::class)->name('materials.download');
             Route::apiResource('courses.assignments', AssignmentController::class)->shallow();
             // Submissions (only index, store, show)
             Route::apiResource('assignments.submissions', SubmissionController::class)->shallow()->only(['index', 'store', 'show']);
         });
+
+        Route::get('/submissions/{submission}/download', SubmissionDownloadController::class)
+            ->name('submissions.download');
 
         // Grade (store, update, show)
         Route::post('/submissions/{submission}/grade', [GradeController::class, 'store'])->name('submissions.grade.store');

@@ -1,8 +1,18 @@
 <?php
 
+use App\Http\Middleware\EnsureUserHasRole;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,42 +23,42 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'role' => EnsureUserHasRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(fn ($request) => $request->is('api/*') || $request->expectsJson());
-        $exceptions->render(function (Throwable $e, \Illuminate\Http\Request $request) {
+        $exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 $statusCode = 500;
-                $message = $e->getMessage();
+                $message = 'Terjadi kesalahan pada server.';
                 $errors = [];
 
-                if ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                if ($e instanceof AuthenticationException) {
                     $statusCode = 401;
                     $message = 'Unauthenticated.';
-                } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException || $e instanceof \Illuminate\Auth\Access\AuthorizationException) {
+                } elseif ($e instanceof AccessDeniedHttpException || $e instanceof AuthorizationException) {
                     $statusCode = 403;
-                    $message = 'This action is unauthorized.';
-                } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException || $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+                    $message = 'Anda tidak memiliki akses ke sumber daya ini.';
+                } elseif ($e instanceof NotFoundHttpException || $e instanceof ModelNotFoundException) {
                     $statusCode = 404;
-                    $message = 'Resource not found.';
-                } elseif ($e instanceof \Illuminate\Validation\ValidationException) {
+                    $message = 'Sumber daya tidak ditemukan.';
+                } elseif ($e instanceof ValidationException) {
                     $statusCode = 422;
-                    $message = 'Validation failed.';
+                    $message = 'Data yang diberikan tidak valid.';
                     $errors = $e->errors();
-                } elseif ($e instanceof \Illuminate\Http\Exceptions\ThrottleRequestsException) {
+                } elseif ($e instanceof ThrottleRequestsException) {
                     $statusCode = 429;
-                    $message = 'Too Many Attempts.';
-                } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpException) {
+                    $message = 'Terlalu banyak percobaan.';
+                } elseif ($e instanceof HttpException) {
                     $statusCode = $e->getStatusCode();
                 }
 
                 $response = ['message' => $message];
-                if (!empty($errors)) {
+                if (! empty($errors)) {
                     $response['errors'] = $errors;
                 }
-                
+
                 return response()->json($response, $statusCode);
             }
         });

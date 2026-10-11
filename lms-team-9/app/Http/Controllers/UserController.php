@@ -5,11 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Gate; // 1. Import Facade Gate
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View; // 1. Import Facade Gate
 
 class UserController extends Controller
 {
@@ -26,8 +25,8 @@ class UserController extends Controller
         if ($request->filled('search')) {
             $cari = $request->search;
             $query->where(function ($q) use ($cari) {
-                $q->where('name', 'like', '%' . $cari . '%')
-                  ->orWhere('email', 'like', '%' . $cari . '%');
+                $q->where('name', 'like', '%'.$cari.'%')
+                    ->orWhere('email', 'like', '%'.$cari.'%');
             });
         }
 
@@ -61,11 +60,12 @@ class UserController extends Controller
 
         $data = $request->validated();
 
-        $user           = new User();
-        $user->name     = $data['name'];
-        $user->email    = $data['email'];
+        $user = new User;
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        $user->nim_nip = $data['nim_nip'] ?? null;
         $user->password = bcrypt($data['password']);
-        $user->role     = $data['role']; // Eksplisit — role tidak ada di fillable
+        $user->role = $data['role']; // Eksplisit — role tidak ada di fillable
         $user->save();
 
         return redirect()->route('admin.users.index')
@@ -101,12 +101,21 @@ class UserController extends Controller
 
         $data = $request->validated();
 
-        $user->name  = $data['name'];
+        if ($user->taughtCourses()->exists() && $data['role'] !== 'dosen') {
+            return back()->withErrors([
+                'role' => 'Pindahkan mata kuliah yang diampu sebelum mengubah peran dosen.',
+            ])->withInput();
+        }
+
+        $user->name = $data['name'];
         $user->email = $data['email'];
-        $user->role  = $data['role']; // Eksplisit — role tidak ada di fillable
+        $user->role = $data['role']; // Eksplisit — role tidak ada di fillable
+        if (array_key_exists('nim_nip', $data)) {
+            $user->nim_nip = $data['nim_nip'];
+        }
 
         // Update password hanya jika diisi (nullable di Form Request)
-        if (!empty($data['password'])) {
+        if (! empty($data['password'])) {
             $user->password = bcrypt($data['password']);
         }
 
@@ -123,20 +132,14 @@ class UserController extends Controller
     {
         Gate::authorize('delete', $user); // 8. Otorisasi hapus data
 
-        try {
-            $user->delete();
+        if ($user->taughtCourses()->exists()) {
             return redirect()->route('admin.users.index')
-                ->with('success', 'Pengguna berhasil dihapus.'); 
-        } catch (QueryException $e) {
-            // Kode 23000 adalah error Integrity Constraint Violation (Foreign Key)
-            if ($e->getCode() == '23000') {
-                return redirect()->route('admin.users.index')
-                    ->with('error', 'Dosen tidak dapat dihapus karena masih terikat dengan data mata kuliah.');
-            }
-
-            // Tangani error database lainnya
-            return redirect()->route('admin.users.index')
-                ->with('error', 'Terjadi kesalahan saat menghapus pengguna.');
+                ->with('error', 'Pindahkan mata kuliah yang diampu sebelum menghapus pengguna.');
         }
+
+        $user->delete();
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Pengguna berhasil dihapus.');
     }
 }

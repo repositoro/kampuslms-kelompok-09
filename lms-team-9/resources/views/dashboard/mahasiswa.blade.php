@@ -2,6 +2,7 @@
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Dashboard Mahasiswa</h1>
         <p class="text-sm text-gray-600">Selamat datang, {{ auth()->user()->name }}!</p>
+        <a href="{{ route('mahasiswa.grades.index') }}" class="text-sm text-blue-700 underline">Rekap nilai saya</a>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -43,6 +44,14 @@
                         <p class="mt-1 text-xs font-semibold text-amber-700">
                             Tenggat: {{ \Carbon\Carbon::parse($assignment->due_at)->format('d M Y, H:i') }}
                         </p>
+                        @php($submission = $assignment->submissions->first())
+                        <p class="mt-1 text-xs text-gray-700">
+                            Status:
+                            {{ !$submission ? 'Belum mengumpulkan' : ($submission->is_late ? 'Terkumpul terlambat' : 'Terkumpul tepat waktu') }}
+                        </p>
+                        <a href="{{ route('dosen.assignments.show', $assignment) }}" class="text-xs text-blue-700 underline">
+                            Lihat tugas
+                        </a>
                     </div>
                 @empty
                     <p class="text-center text-sm text-gray-400 py-4">Tidak ada tugas aktif mendatang.</p>

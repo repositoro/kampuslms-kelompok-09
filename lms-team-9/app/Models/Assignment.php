@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -6,14 +7,29 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Facades\Storage;
 
 class Assignment extends Model
 {
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Assignment $assignment): void {
+            $filePaths = $assignment->submissions()
+                ->whereNotNull('file_path')
+                ->pluck('file_path')
+                ->all();
+
+            if ($filePaths !== []) {
+                Storage::disk('local')->delete($filePaths);
+            }
+        });
+    }
+
     protected $fillable = [
-        'course_id', 'created_by', 'title', 'instructions', 
-        'due_at', 'max_score', 'allow_late', 'status'
+        'course_id', 'created_by', 'title', 'instructions',
+        'due_at', 'max_score', 'allow_late', 'status',
     ];
 
     protected function casts(): array

@@ -1,59 +1,64 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# KampusLMS
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi Learning Management System untuk proyek mata kuliah SI2514024 Pemrograman Web. KampusLMS mengelola pengguna dan peran, mata kuliah, enrollment, materi, serta tugas dengan antarmuka web dan API v1 berautentikasi Sanctum.
 
-## About Laravel
+## Teknologi
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2+
+- Laravel 12
+- SQLite secara default; MySQL/PostgreSQL juga dapat dipakai melalui konfigurasi Laravel
+- Laravel Sanctum untuk autentikasi API
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Instalasi lokal
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Jalankan dari direktori `lms-team-9`:
 
-## Learning Laravel
+```sh
+composer install
+copy .env.example .env
+php artisan key:generate
+php artisan migrate:fresh --seed
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Di PowerShell, perintah salin yang setara adalah `Copy-Item .env.example .env`. Untuk frontend:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```sh
+npm install
+npm run build
+php artisan serve
+```
 
-## Laravel Sponsors
+## Akun demo lokal
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Seeder lokal menyediakan akun berikut. Password default `password` hanya untuk development/CI lokal; jangan gunakan password tersebut di server.
 
-### Premium Partners
+| Peran | Email |
+|---|---|
+| Admin | `admin@kampuslms.test` |
+| Dosen | `dosen@kampuslms.test` |
+| Mahasiswa | `mahasiswa@kampuslms.test` |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Di production, set `DEMO_ACCOUNT_PASSWORD` menjadi secret non-default sebelum menjalankan seeder. Seeder akan menolak password kosong atau `password`. Jangan menyimpan secret production di README, repository, atau `.env.example`.
 
-## Contributing
+## API
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+API v1 menggunakan prefix `/api/v1`. Login melalui `POST /api/v1/auth/login`, gunakan token Sanctum untuk route yang memerlukan autentikasi, dan baca profil saat ini melalui `GET /api/v1/me`. Rincian route dan contoh request/response: [`docs/api.md`](docs/api.md).
 
-## Code of Conduct
+## Tim
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Anggota | Pembagian tugas |
+|---|---|
+| `[NAMA ANGGOTA 1]` | `[TUGAS]` |
+| `[NAMA ANGGOTA 2]` | `[TUGAS]` |
+| `[NAMA ANGGOTA 3]` | `[TUGAS]` |
+| `[NAMA ANGGOTA 4]` | `[TUGAS]` |
 
-## Security Vulnerabilities
+## Aplikasi live
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+`[BELUM DIDEPLOY — isi tautan aplikasi setelah tersedia]`
 
-## License
+## Pengujian
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```sh
+php artisan test
+```

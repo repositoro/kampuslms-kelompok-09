@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\Course;
 use App\Models\Assignment;
-use App\Models\Submission;
+use App\Models\Course;
 use App\Models\Grade;
+use App\Models\Submission;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,8 +15,10 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([DemoAccountSeeder::class]);
 
-        $dosenList = User::factory(3)->create(['role' => 'dosen']);
-        $mahasiswaList = User::factory(30)->create(['role' => 'mahasiswa']);
+        $dosenList = collect([User::where('email', 'dosen@kampuslms.test')->firstOrFail()])
+            ->merge(User::factory(2)->create(['role' => 'dosen']));
+        $mahasiswaList = collect([User::where('email', 'mahasiswa@kampuslms.test')->firstOrFail()])
+            ->merge(User::factory(29)->create(['role' => 'mahasiswa']));
 
         $courses = Course::factory(5)->recycle($dosenList)->create();
 
@@ -26,13 +28,23 @@ class DatabaseSeeder extends Seeder
                 $course->students()->attach($student->id, ['enrolled_at' => now()]);
             }
 
-            $assignments = Assignment::factory(3)->create([
-                'course_id' => $course->id,
-                'created_by' => $course->lecturer_id,
+            $assignments = collect([
+                Assignment::factory()->overdue()->create([
+                    'course_id' => $course->id,
+                    'created_by' => $course->lecturer_id,
+                ]),
+                Assignment::factory()->active()->create([
+                    'course_id' => $course->id,
+                    'created_by' => $course->lecturer_id,
+                ]),
+                Assignment::factory()->draft()->create([
+                    'course_id' => $course->id,
+                    'created_by' => $course->lecturer_id,
+                ]),
             ]);
 
             foreach ($assignments as $assignment) {
-                foreach ($enrolledStudents->random(10) as $student) {
+                foreach ($enrolledStudents->random(10)->values() as $index => $student) {
                     $submission = Submission::create([
                         'assignment_id' => $assignment->id,
                         'user_id' => $student->id,
@@ -43,13 +55,15 @@ class DatabaseSeeder extends Seeder
                         'is_late' => false,
                     ]);
 
-                    Grade::create([
-                        'submission_id' => $submission->id,
-                        'graded_by' => $course->lecturer_id,
-                        'score' => rand(70, 100),
-                        'feedback' => 'Bagus!',
-                        'graded_at' => now(),
-                    ]);
+                    if ($index < 6) {
+                        Grade::create([
+                            'submission_id' => $submission->id,
+                            'graded_by' => $course->lecturer_id,
+                            'score' => rand(70, 100),
+                            'feedback' => 'Bagus!',
+                            'graded_at' => now(),
+                        ]);
+                    }
                 }
             }
         }

@@ -1,41 +1,50 @@
 <?php
+
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreSubmissionRequest;
+use App\Http\Resources\SubmissionResource;
 use App\Models\Assignment;
 use App\Models\Submission;
-use App\Http\Resources\SubmissionResource;
-use App\Http\Requests\StoreSubmissionRequest;
+use App\Services\SubmissionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class SubmissionController extends Controller
 {
     public function index(Assignment $assignment)
     {
-        $submissions = $assignment->submissions()->with(['user', 'grade'])->paginate();
+        Gate::authorize('viewAny', [Submission::class, $assignment]);
+        $submissions = $assignment->submissions()->with(['student', 'grade'])->paginate();
+
         return SubmissionResource::collection($submissions);
     }
 
-    public function store(StoreSubmissionRequest $request, Assignment $assignment)
-    {
-        abort_unless($request->user()->role === 'mahasiswa', 403, 'This action is unauthorized.');
-        
-        $data = $request->validated();
-        $data['user_id'] = $request->user()->id;
-        $submission = $assignment->submissions()->create($data);
-        return new SubmissionResource($submission);
+    public function store(
+        StoreSubmissionRequest $request,
+        Assignment $assignment,
+        SubmissionService $submissionService,
+    ) {
+        Gate::authorize('create', [Submission::class, $assignment]);
+
+        [$submission, $created] = $submissionService->store(
+            $assignment,
+            $request->user(),
+            $request->file('file'),
+            $request->validated('note'),
+        );
+
+        return (new SubmissionResource($submission))
+            ->response()
+            ->setStatusCode($created ? 201 : 200);
     }
 
     public function show(Request $request, Submission $submission)
     {
-        $course = $submission->assignment->course;
-        abort_unless(
-            $request->user()->role === 'admin' || 
-            ($request->user()->role === 'dosen' && $course->lecturer_id === $request->user()->id) ||
-            ($request->user()->role === 'mahasiswa' && $submission->user_id === $request->user()->id),
-            403, 'This action is unauthorized.'
-        );
-        $submission->load(['user', 'grade']);
+        Gate::authorize('view', $submission);
+        $submission->load(['student', 'grade']);
+
         return new SubmissionResource($submission);
     }
 }

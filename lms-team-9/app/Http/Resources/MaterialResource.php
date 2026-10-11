@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Resources;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -11,7 +13,13 @@ class MaterialResource extends JsonResource
             'id' => $this->id,
             'course_id' => $this->course_id,
             'title' => $this->title,
-            'content' => $this->content,
+            'description' => $this->description,
+            'type' => $this->type,
+            'file_url' => $this->type === 'file' ? route('api.v1.materials.download', $this->resource) : null,
+            'external_url' => $this->external_url,
+            'original_name' => $this->original_name,
+            'file_size' => $this->file_size,
+            'mime_type' => $this->mime_type,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
