@@ -11,6 +11,9 @@ permissions:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ${{ github.workspace }}/lms-team-9/database/database.sqlite
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
