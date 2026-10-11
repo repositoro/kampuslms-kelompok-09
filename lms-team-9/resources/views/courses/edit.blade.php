@@ -24,7 +24,7 @@
                 </x-form-field>
                 <x-form-field name="status" label="Status" :required="true">
                     <x-select id="status" name="status" required>
-                        <option value="draft" @selected(old('status', $course->status) === 'draft')>Draft</option>
+                        <option value="draft" @selected(old('status', $course->status) === 'draft')>Draf</option>
                         <option value="active" @selected(old('status', $course->status) === 'active')>Aktif</option>
                         <option value="archived" @selected(old('status', $course->status) === 'archived')>Diarsipkan</option>
                     </x-select>

@@ -24,7 +24,7 @@
                 </x-form-field>
                 <x-form-field name="status" label="Status">
                     <x-select id="status" name="status">
-                        <option value="draft" @selected(old('status', 'draft') === 'draft')>Draft</option>
+                        <option value="draft" @selected(old('status', 'draft') === 'draft')>Draf</option>
                         <option value="active" @selected(old('status') === 'active')>Aktif</option>
                         <option value="archived" @selected(old('status') === 'archived')>Diarsipkan</option>
                     </x-select>

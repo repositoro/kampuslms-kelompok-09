@@ -17,7 +17,6 @@
         ]" />
     @else
         <x-tabs :tabs="[
-            ['label' => 'Ringkasan', 'route' => 'courses.show', 'parameters' => [$course]],
             ['label' => 'Materi', 'route' => 'dosen.courses.materials.index', 'parameters' => [$course], 'active' => 'dosen.courses.materials.*'],
             ['label' => 'Tugas', 'route' => 'dosen.courses.assignments.index', 'parameters' => [$course], 'active' => 'dosen.courses.assignments.*'],
             ['label' => 'Nilai saya', 'route' => 'mahasiswa.grades.index'],
@@ -27,7 +26,7 @@
         <x-card title="Ringkasan mata kuliah">
             <p>{{ $course->description ?: 'Belum ada deskripsi mata kuliah.' }}</p>
             <p><strong>Dosen pengampu:</strong> {{ $course->lecturer?->name ?? 'Belum ditentukan' }}</p>
-            <x-badge :variant="$course->status === 'active' ? 'success' : 'neutral'">{{ ucfirst($course->status) }}</x-badge>
+            <x-badge :variant="$course->status === 'active' ? 'success' : 'neutral'">{{ ['draft' => 'Draf', 'active' => 'Aktif', 'archived' => 'Diarsipkan'][$course->status] ?? $course->status }}</x-badge>
         </x-card>
         @if ($canManageEnrollment)
             <x-card title="Daftarkan mahasiswa">
