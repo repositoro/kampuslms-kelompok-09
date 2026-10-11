@@ -1,12 +1,6 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KampusLMS - Home</title>
-</head>
-<body>
-    <h1>Selamat Datang di KampusLMS</h1>
-    <p>Proyek Laravel 12 - Kelompok 9</p>
-</body>
-</html>
+<x-guest-layout title="KampusLMS">
+    <section class="card">
+        <x-page-header title="Selamat datang di KampusLMS" subtitle="Portal pembelajaran KampusLMS." />
+        <a class="button button--primary" href="{{ route('login') }}">Masuk</a>
+    </section>
+</x-guest-layout>

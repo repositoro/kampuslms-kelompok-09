@@ -9,8 +9,10 @@
   - Global API: 60 request / menit per user/IP.
   - Login: 5 request / menit per email/IP.
 - **Format Response**:
-  - Sukses: `{ "data": ..., "meta": {...}, "links": {...} }` (Untuk resource tunggal kadang tanpa meta/links).
-  - Error: `{ "message": "Pesan error...", "errors": { "field": ["Detail error"] } }` (HTTP 4xx/5xx).
+  - Sukses tunggal: `{ "data": {...} }`.
+  - Sukses koleksi: `{ "data": [...], "meta": {"current_page": 1, "last_page": 5, "total": 47} }`.
+  - Validasi (422): `{ "message": "Data yang diberikan tidak valid.", "errors": {...} }`.
+  - Tidak berhak (403): `{ "message": "Anda tidak memiliki akses ke sumber daya ini." }`.
 
 ## Alur Cepat
 1. Lakukan request `POST /api/v1/auth/login` dengan `email` dan `password`.
@@ -42,11 +44,11 @@
   -H "Authorization: Bearer <token>"
   ```
 
-**GET `/api/v1/auth/me`**
+**GET `/api/v1/me`**
 - **Akses**: Semua (Login)
 - **Contoh Request**:
   ```bash
-  curl -X GET http://localhost:8000/api/v1/auth/me \
+  curl -X GET http://localhost:8000/api/v1/me \
   -H "Accept: application/json" \
   -H "Authorization: Bearer <token>"
   ```
@@ -63,15 +65,15 @@
   ```
 
 **POST `/api/v1/courses`**
-- **Akses**: Admin, Dosen
-- **Body**: `title`, `description`
+- **Akses**: Admin
+- **Body**: `code`, `name`, `description`, `sks`, `lecturer_id`, `status`
 - **Contoh Request**:
   ```bash
   curl -X POST http://localhost:8000/api/v1/courses \
   -H "Accept: application/json" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
-  -d '{"title":"Pemrograman Web", "description":"Mata kuliah ProWeb"}'
+  -d '{"code":"SI2514024", "name":"Pemrograman Web", "sks":3, "lecturer_id":1, "status":"active"}'
   ```
 
 **GET `/api/v1/courses/{course}`**
@@ -84,19 +86,19 @@
   ```
 
 **PUT `/api/v1/courses/{course}`**
-- **Akses**: Admin, Dosen (pemilik)
-- **Body**: `title`, `description`
+- **Akses**: Admin
+- **Body**: field mata kuliah yang akan diperbarui (`code`, `name`, `description`, `sks`, `lecturer_id`, `status`)
 - **Contoh Request**:
   ```bash
   curl -X PUT http://localhost:8000/api/v1/courses/1 \
   -H "Accept: application/json" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
-  -d '{"title":"Pemrograman Web Update", "description":"Update ProWeb"}'
+  -d '{"name":"Pemrograman Web Update", "description":"Update ProWeb"}'
   ```
 
 **DELETE `/api/v1/courses/{course}`**
-- **Akses**: Admin, Dosen (pemilik)
+- **Akses**: Admin
 - **Contoh Request**:
   ```bash
   curl -X DELETE http://localhost:8000/api/v1/courses/1 \
@@ -105,21 +107,20 @@
   ```
 
 ### 3. Materials & Assignments
-Sama seperti `courses` namun dengan prefix nested:
-- `GET /api/v1/courses/{course}/materials` (Semua yang login)
-- `POST /api/v1/courses/{course}/materials` (Dosen pemilik)
-- `GET /api/v1/materials/{material}` (Semua yang login)
-- `PUT /api/v1/materials/{material}` (Dosen pemilik)
-- `DELETE /api/v1/materials/{material}` (Dosen pemilik)
+- `GET /api/v1/courses/{course}/materials` (Admin, dosen pengampu, mahasiswa terdaftar)
+- `POST /api/v1/courses/{course}/materials` (Admin, dosen pengampu)
+- `GET /api/v1/materials/{material}` (Admin, dosen pengampu, mahasiswa terdaftar)
+- `PUT /api/v1/materials/{material}` dan `DELETE /api/v1/materials/{material}` (Admin, dosen pengampu)
 
-- `GET /api/v1/courses/{course}/assignments` (Semua yang login)
-- `POST /api/v1/courses/{course}/assignments` (Dosen pemilik)
-- `GET /api/v1/assignments/{assignment}` (Semua yang login)
-- `PUT /api/v1/assignments/{assignment}` (Dosen pemilik)
-- `DELETE /api/v1/assignments/{assignment}` (Dosen pemilik)
+- `GET /api/v1/courses/{course}/assignments` (Admin, dosen pengampu; mahasiswa terdaftar hanya melihat tugas published)
+- Parameter opsional: `?status=draft|published&page=1`
+- `POST /api/v1/courses/{course}/assignments` (Admin, dosen pengampu)
+- `GET /api/v1/assignments/{assignment}` (Admin, dosen pengampu; mahasiswa terdaftar hanya melihat tugas published)
+- `PUT /api/v1/assignments/{assignment}` (Admin, dosen pengampu)
+- `DELETE /api/v1/assignments/{assignment}` (Admin, dosen pengampu)
 
 ### 4. Submissions & Grades
-- `GET /api/v1/assignments/{assignment}/submissions` (Dosen pemilik, Mahasiswa)
+- `GET /api/v1/assignments/{assignment}/submissions` (Admin, dosen pengampu)
 - `POST /api/v1/assignments/{assignment}/submissions` (Mahasiswa)
 - `GET /api/v1/submissions/{submission}` (Dosen pemilik, Mahasiswa pemilik)
 - `POST /api/v1/submissions/{submission}/grade` (Dosen pemilik)
@@ -130,7 +131,7 @@ Sama seperti `courses` namun dengan prefix nested:
 **422 Unprocessable Entity (Validasi Gagal)**
 ```json
 {
-    "message": "Validation failed.",
+    "message": "Data yang diberikan tidak valid.",
     "errors": {
         "email": ["The email field is required."]
     }
@@ -140,7 +141,7 @@ Sama seperti `courses` namun dengan prefix nested:
 **403 Forbidden**
 ```json
 {
-    "message": "This action is unauthorized."
+    "message": "Anda tidak memiliki akses ke sumber daya ini."
 }
 ```
 
@@ -154,6 +155,6 @@ Sama seperti `courses` namun dengan prefix nested:
 **429 Too Many Requests**
 ```json
 {
-    "message": "Too Many Attempts."
+    "message": "Terlalu banyak percobaan."
 }
 ```

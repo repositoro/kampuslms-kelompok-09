@@ -8,17 +8,25 @@ use App\Http\Requests\UpdateAssignmentRequest;
 use App\Http\Resources\AssignmentResource;
 use App\Models\Assignment;
 use App\Models\Course;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 class AssignmentController extends Controller
 {
-    public function index(Course $course)
+    public function index(Request $request, Course $course)
     {
         Gate::authorize('view', $course);
         $assignments = $course->assignments();
 
-        if (request()->user()->role === 'mahasiswa') {
+        if ($request->user()->role === 'mahasiswa') {
             $assignments->where('status', 'published');
+        }
+
+        $filters = $request->validate([
+            'status' => ['sometimes', 'in:draft,published'],
+        ]);
+        if (isset($filters['status'])) {
+            $assignments->where('status', $filters['status']);
         }
 
         $assignments = $assignments->paginate();

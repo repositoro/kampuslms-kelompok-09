@@ -106,7 +106,7 @@ class ContentDeletionTest extends TestCase
         Storage::disk('local')->assertMissing($submission->file_path);
     }
 
-    public function test_student_and_other_lecturer_cannot_delete_and_admin_api_delete_is_forbidden(): void
+    public function test_admin_and_owner_can_delete_assignments_but_other_users_cannot(): void
     {
         $lecturer = User::factory()->create(['role' => 'dosen']);
         $otherLecturer = User::factory()->create(['role' => 'dosen']);
@@ -127,10 +127,14 @@ class ContentDeletionTest extends TestCase
             ->delete("/dosen/assignments/{$assignment->id}")
             ->assertForbidden();
 
-        foreach ([$otherLecturer, $student, $admin] as $user) {
+        foreach ([$otherLecturer, $student] as $user) {
             Sanctum::actingAs($user);
             $this->deleteJson("/api/v1/assignments/{$assignment->id}")->assertForbidden();
         }
         $this->assertDatabaseHas('assignments', ['id' => $assignment->id]);
+
+        Sanctum::actingAs($admin);
+        $this->deleteJson("/api/v1/assignments/{$assignment->id}")->assertNoContent();
+        $this->assertDatabaseMissing('assignments', ['id' => $assignment->id]);
     }
 }

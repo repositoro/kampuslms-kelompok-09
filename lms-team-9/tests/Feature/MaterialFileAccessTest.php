@@ -103,4 +103,39 @@ class MaterialFileAccessTest extends TestCase
         $this->deleteJson("/api/v1/materials/{$material->id}")->assertNoContent();
         $this->assertDatabaseMissing('materials', ['id' => $material->id]);
     }
+
+    public function test_external_material_links_only_allow_http_schemes_and_hide_unsafe_legacy_links(): void
+    {
+        $lecturer = User::factory()->create(['role' => 'dosen']);
+        $course = Course::factory()->create(['lecturer_id' => $lecturer->id]);
+
+        Sanctum::actingAs($lecturer);
+
+        $this->postJson("/api/v1/courses/{$course->id}/materials", [
+            'title' => 'Unsafe link',
+            'type' => 'link',
+            'external_url' => 'javascript://example.com/%0Aalert(1)',
+        ])->assertUnprocessable()->assertJsonValidationErrors('external_url');
+
+        $material = Material::create([
+            'course_id' => $course->id,
+            'uploaded_by' => $lecturer->id,
+            'title' => 'Legacy unsafe link',
+            'type' => 'link',
+            'external_url' => 'javascript://example.com/%0Aalert(1)',
+        ]);
+
+        $this->putJson("/api/v1/materials/{$material->id}", [
+            'type' => 'link',
+            'external_url' => 'javascript://example.com/%0Aalert(1)',
+        ])->assertUnprocessable()->assertJsonValidationErrors('external_url');
+
+        $this->getJson("/api/v1/materials/{$material->id}")
+            ->assertOk()
+            ->assertJsonPath('data.external_url', null);
+        $this->get("/dosen/materials/{$material->id}")
+            ->assertOk()
+            ->assertDontSee('Buka tautan')
+            ->assertDontSee('href="javascript:', false);
+    }
 }

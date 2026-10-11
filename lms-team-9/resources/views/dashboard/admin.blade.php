@@ -1,48 +1,29 @@
 <x-layout title="Dashboard Admin">
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Dashboard Admin</h1>
-        <p class="text-sm text-gray-600">Selamat datang kembali, {{ auth()->user()->name }}!</p>
+    <x-page-header title="Dashboard Admin" subtitle="Ringkasan pengelolaan KampusLMS." />
+    <div class="stats-grid">
+        <x-card>
+            <p class="stat-label">Total pengguna</p>
+            <p class="stat-value">{{ $stats['total_users'] }}</p>
+        </x-card>
+        <x-card>
+            <p class="stat-label">Mata kuliah</p>
+            <p class="stat-value">{{ $stats['total_courses'] }}</p>
+        </x-card>
+        <x-card>
+            <p class="stat-label">Mahasiswa</p>
+            <p class="stat-value">{{ $stats['total_mhs'] }}</p>
+            <p class="field-hint">Jumlah seluruh akun mahasiswa.</p>
+        </x-card>
+        <x-card>
+            <p class="stat-label">Dosen</p>
+            <p class="stat-value">{{ $stats['total_dosen'] }}</p>
+        </x-card>
     </div>
-
-    {{-- Ringkasan Statistik --}}
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-4 mb-8">
-        <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Total Pengguna</span>
-            <p class="mt-2 text-3xl font-bold text-gray-900">{{ $stats['total_users'] }}</p>
+    <x-card title="Aksi cepat">
+        <div class="cluster">
+            <a class="button button--primary" href="{{ route('admin.users.index') }}">Kelola pengguna</a>
+            <a class="button button--secondary" href="{{ route('admin.users.create') }}">Tambah pengguna</a>
+            <a class="button button--secondary" href="{{ route('courses.index') }}">Kelola mata kuliah</a>
         </div>
-
-        <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Mata Kuliah</span>
-            <p class="mt-2 text-3xl font-bold text-gray-900">{{ $stats['total_courses'] }}</p>
-        </div>
-
-        <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Total Dosen</span>
-            <p class="mt-2 text-3xl font-bold text-slate-700">{{ $stats['total_dosen'] }}</p>
-        </div>
-
-        <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Total Mahasiswa</span>
-            <p class="mt-2 text-3xl font-bold text-slate-700">{{ $stats['total_mhs'] }}</p>
-        </div>
-    </div>
-
-    {{-- Aksi Cepat --}}
-    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 class="mb-4 text-lg font-semibold text-gray-900">Aksi Cepat Admin</h2>
-        <div class="flex flex-wrap gap-3">
-            <a href="{{ route('admin.users.index') }}" 
-               class="rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
-                Kelola Pengguna
-            </a>
-            <a href="{{ route('admin.users.create') }}" 
-               class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                + Tambah Akun
-            </a>
-            <a href="{{ route('courses.index') }}" 
-               class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                Kelola Mata Kuliah
-            </a>
-        </div>
-    </div>
+    </x-card>
 </x-layout>

@@ -1,13 +1,12 @@
-<x-layout title="Halaman Tidak Ditemukan">
-    <div class="flex flex-col items-center justify-center text-center py-24">
-        <p class="text-6xl font-bold text-slate-300 mb-4">404</p>
-        <h1 class="text-2xl font-bold mb-2">Halaman Tidak Ditemukan</h1>
-        <p class="text-gray-500 mb-6">
-            Maaf, halaman atau mata kuliah yang kamu cari tidak tersedia.
-        </p>
-        <a href="{{ route('dashboard') }}"
-           class="bg-slate-800 text-white px-4 py-2 rounded hover:bg-slate-700">
-            Kembali ke Dashboard
-        </a>
-    </div>
+<x-layout title="404 — Halaman Tidak Ditemukan">
+    <section class="error-page">
+        <p class="error-code">404</p>
+        <h1>Halaman tidak ditemukan</h1>
+        <p class="muted">Halaman atau materi yang Anda cari tidak tersedia.</p>
+        @auth
+            <a class="button button--primary" href="{{ route('dashboard') }}">Kembali ke dashboard</a>
+        @else
+            <a class="button button--primary" href="{{ route('login') }}">Masuk</a>
+        @endauth
+    </section>
 </x-layout>
