@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: lms-team-9/package-lock.json
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_sqlite, sqlite3
+          coverage: none
+
+      - name: Install Composer dependencies
+        working-directory: lms-team-9
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Build frontend assets
+        working-directory: lms-team-9
+        run: |
+          npm ci
+          npm run build
+
+      - name: Ensure .env is not committed
+        run: |
+          if git ls-files --error-unmatch -- lms-team-9/.env >/dev/null 2>&1; then
+            echo "::error::lms-team-9/.env must not be committed"
+            exit 1
+          fi
+
+      - name: Prepare application environment
+        working-directory: lms-team-9
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          touch database/database.sqlite
+
+      - name: Run database migrations and seeders
+        working-directory: lms-team-9
+        run: php artisan migrate:fresh --seed --no-interaction
+
+      - name: Run tests
+        working-directory: lms-team-9
+        run: php artisan test --no-interaction
