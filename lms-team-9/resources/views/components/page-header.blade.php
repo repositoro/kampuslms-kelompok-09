@@ -1,7 +1,8 @@
-@props(['title', 'subtitle' => null])
+@props(['title', 'subtitle' => null, 'eyebrow' => 'Sistem Pembelajaran Perkuliahan'])
 
 <header class="page-header">
     <div>
+        <p class="eyebrow">{{ $eyebrow }}</p>
         <h1>{{ $title }}</h1>
         @if ($subtitle)
             <p class="page-subtitle">{{ $subtitle }}</p>

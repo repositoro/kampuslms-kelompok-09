@@ -19,7 +19,7 @@
                 </x-form-field>
                 <x-form-field name="status" label="Status" :required="true">
                     <x-select id="status" name="status" required>
-                        <option value="draft" @selected(old('status', 'draft') === 'draft')>Draft</option>
+                        <option value="draft" @selected(old('status', 'draft') === 'draft')>Draf</option>
                         <option value="published" @selected(old('status') === 'published')>Terbit</option>
                     </x-select>
                 </x-form-field>

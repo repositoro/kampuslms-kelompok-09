@@ -1,5 +1,5 @@
 <x-layout title="Nilai Saya">
-    <x-page-header title="Nilai Saya" subtitle="Nilai dan feedback dari mata kuliah yang Anda ikuti." />
+    <x-page-header title="Nilai Saya" subtitle="Nilai dan umpan balik dari mata kuliah yang Anda ikuti." />
     <x-card title="Riwayat penilaian">
         <x-table>
             <thead><tr><th>Mata kuliah</th><th>Tugas</th><th>Nilai</th><th>Umpan balik</th><th>Status</th></tr></thead>

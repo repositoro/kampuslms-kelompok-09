@@ -21,7 +21,7 @@ class StudentDashboardTest extends TestCase
             'name' => 'Pemrograman Web',
         ]);
         $course->students()->attach($student->id, ['enrolled_at' => now()]);
-        Assignment::factory()->active()->create([
+        $assignment = Assignment::factory()->active()->create([
             'course_id' => $course->id,
             'created_by' => $lecturer->id,
             'title' => 'Tugas Mendatang',
@@ -32,5 +32,10 @@ class StudentDashboardTest extends TestCase
             ->assertOk()
             ->assertSee('Tugas Mendatang')
             ->assertSee('Pemrograman Web');
+
+        $this->get(route('dosen.assignments.show', $assignment))
+            ->assertOk()
+            ->assertSee('Kumpul Tugas')
+            ->assertDontSee('Pengumpulan mahasiswa');
     }
 }

@@ -1,6 +1,6 @@
 <x-layout title="Detail Materi">
-    <x-breadcrumb><a href="{{ route('courses.show', $material->course) }}">{{ $material->course->name }}</a><a href="{{ route('dosen.courses.materials.index', $material->course) }}">Materi</a><span>Detail</span></x-breadcrumb>
-    <x-page-header title="{{ $material->title }}" subtitle="{{ $material->course->name }}">
+    <x-breadcrumb><a href="{{ route('courses.show', $material->course_id) }}">Mata kuliah</a><a href="{{ route('dosen.courses.materials.index', $material->course_id) }}">Materi</a><span>Detail</span></x-breadcrumb>
+    <x-page-header title="{{ $material->title }}" subtitle="Materi pembelajaran">
         <x-slot:actions>
             @can('update', $material)<a class="button button--secondary" href="{{ route('dosen.materials.edit', $material) }}">Ubah materi</a>@endcan
         </x-slot:actions>

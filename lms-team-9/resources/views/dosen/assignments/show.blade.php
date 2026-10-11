@@ -21,7 +21,7 @@
     </x-page-header>
     <x-card title="Informasi tugas">
         <div class="status-row">
-            <x-badge :variant="$assignment->status === 'published' ? 'success' : 'neutral'">{{ $assignment->status === 'published' ? 'Terbit' : 'Draft' }}</x-badge>
+            <x-badge :variant="$assignment->status === 'published' ? 'success' : 'neutral'">{{ $assignment->status === 'published' ? 'Terbit' : 'Draf' }}</x-badge>
             <x-badge variant="info">Nilai maksimal {{ $assignment->max_score }}</x-badge>
             <x-badge :variant="$assignment->allow_late ? 'warning' : 'danger'">
                 {{ $assignment->allow_late ? 'Terlambat diizinkan' : 'Terlambat tidak diizinkan' }}
@@ -120,7 +120,7 @@
                                                     max="{{ $assignment->max_score }}" step="0.01"
                                                     value="{{ old('score', $studentSubmission->grade?->score) }}" required />
                                             </x-form-field>
-                                            <x-form-field name="feedback" id="feedback-{{ $studentSubmission->id }}" label="Feedback">
+                                            <x-form-field name="feedback" id="feedback-{{ $studentSubmission->id }}" label="Umpan balik">
                                                 <x-textarea id="feedback-{{ $studentSubmission->id }}" name="feedback">{{ old('feedback', $studentSubmission->grade?->feedback) }}</x-textarea>
                                             </x-form-field>
                                             <button class="button button--primary" type="submit">{{ $studentSubmission->grade ? 'Ubah Nilai' : 'Beri Nilai' }}</button>

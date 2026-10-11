@@ -14,7 +14,7 @@
                 <h2><a href="{{ route('courses.show', $course) }}">{{ $course->name }}</a></h2>
                 <p class="muted">{{ $course->description ?: 'Belum ada deskripsi.' }}</p>
                 <div class="status-row">
-                    <x-badge :variant="$course->status === 'active' ? 'success' : 'neutral'">{{ ucfirst($course->status) }}</x-badge>
+                    <x-badge :variant="$course->status === 'active' ? 'success' : 'neutral'">{{ ['draft' => 'Draf', 'active' => 'Aktif', 'archived' => 'Diarsipkan'][$course->status] ?? $course->status }}</x-badge>
                     <span class="muted">{{ $course->sks }} SKS</span>
                     <span class="muted">Dosen: {{ $course->lecturer?->name ?? '—' }}</span>
                 </div>

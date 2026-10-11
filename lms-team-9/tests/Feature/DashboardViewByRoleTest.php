@@ -18,6 +18,7 @@ class DashboardViewByRoleTest extends TestCase
             ->get('/dashboard')
             ->assertOk()
             ->assertSee('Dashboard Admin')
+            ->assertSee('Total pengguna')
             ->assertDontSee('Dashboard Dosen')
             ->assertDontSee('Dashboard Mahasiswa');
     }
@@ -30,6 +31,7 @@ class DashboardViewByRoleTest extends TestCase
             ->get('/dashboard')
             ->assertOk()
             ->assertSee('Dashboard Dosen')
+            ->assertSee('Pengumpulan belum dinilai')
             ->assertDontSee('Dashboard Admin')
             ->assertDontSee('Dashboard Mahasiswa');
     }
@@ -42,6 +44,7 @@ class DashboardViewByRoleTest extends TestCase
             ->get('/dashboard')
             ->assertOk()
             ->assertSee('Dashboard Mahasiswa')
+            ->assertSee('Tugas mendekati tenggat')
             ->assertDontSee('Dashboard Admin')
             ->assertDontSee('Dashboard Dosen');
     }

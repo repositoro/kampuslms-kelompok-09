@@ -1,5 +1,5 @@
 <x-layout title="Edit Materi">
-    <x-breadcrumb><a href="{{ route('courses.show', $material->course) }}">{{ $material->course->name }}</a><a href="{{ route('dosen.courses.materials.index', $material->course) }}">Materi</a><span>Ubah</span></x-breadcrumb>
+    <x-breadcrumb><a href="{{ route('courses.show', $material->course_id) }}">Mata kuliah</a><a href="{{ route('dosen.courses.materials.index', $material->course_id) }}">Materi</a><span>Ubah</span></x-breadcrumb>
     <x-page-header title="Edit materi" subtitle="{{ $material->title }}" />
     <x-card>
         <form action="{{ route('dosen.materials.update', $material) }}" method="POST" enctype="multipart/form-data" class="form-stack">

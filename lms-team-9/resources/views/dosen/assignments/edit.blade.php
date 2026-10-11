@@ -1,5 +1,5 @@
 <x-layout title="Edit Tugas">
-    <x-breadcrumb><a href="{{ route('courses.show', $assignment->course) }}">{{ $assignment->course->name }}</a><a href="{{ route('dosen.courses.assignments.index', $assignment->course) }}">Tugas</a><span>Ubah</span></x-breadcrumb>
+    <x-breadcrumb><a href="{{ route('courses.show', $assignment->course_id) }}">Mata kuliah</a><a href="{{ route('dosen.courses.assignments.index', $assignment->course_id) }}">Tugas</a><span>Ubah</span></x-breadcrumb>
     <x-page-header title="Edit tugas" subtitle="{{ $assignment->title }}" />
     <x-card>
         <form action="{{ route('dosen.assignments.update', $assignment) }}" method="POST" class="form-stack">
@@ -20,7 +20,7 @@
                 </x-form-field>
                 <x-form-field name="status" label="Status" :required="true">
                     <x-select id="status" name="status" required>
-                        <option value="draft" @selected(old('status', $assignment->status) === 'draft')>Draft</option>
+                        <option value="draft" @selected(old('status', $assignment->status) === 'draft')>Draf</option>
                         <option value="published" @selected(old('status', $assignment->status) === 'published')>Terbit</option>
                     </x-select>
                 </x-form-field>

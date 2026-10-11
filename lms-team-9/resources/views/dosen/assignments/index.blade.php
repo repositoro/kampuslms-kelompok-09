@@ -21,7 +21,7 @@
                     <tr>
                         <td data-label="Judul"><a href="{{ route('dosen.assignments.show', $assignment) }}"><strong>{{ $assignment->title }}</strong></a></td>
                         <td data-label="Tenggat">{{ $assignment->due_at->format('d M Y, H:i') }}</td>
-                        <td data-label="Status"><x-badge :variant="$assignment->status === 'published' ? 'success' : 'neutral'">{{ $assignment->status === 'published' ? 'Terbit' : 'Draft' }}</x-badge></td>
+                        <td data-label="Status"><x-badge :variant="$assignment->status === 'published' ? 'success' : 'neutral'">{{ $assignment->status === 'published' ? 'Terbit' : 'Draf' }}</x-badge></td>
                         <td data-label="Pengumpulan">{{ $assignment->submissions_count }}</td>
                         <td data-label="Aksi">
                             <div class="record-actions">

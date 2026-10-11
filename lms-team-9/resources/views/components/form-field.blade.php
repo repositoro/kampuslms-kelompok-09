@@ -1,7 +1,8 @@
 @props(['name', 'id' => null, 'label', 'required' => false, 'hint' => null])
 
+@php($fieldId = $id ?? $name)
 <div class="form-field">
-    <label for="{{ $id ?? $name }}" class="form-label">
+    <label for="{{ $fieldId }}" class="form-label">
         {{ $label }} @if ($required)<span aria-hidden="true">*</span>@endif
     </label>
     {{ $slot }}
@@ -9,6 +10,6 @@
         <p class="field-hint">{{ $hint }}</p>
     @endif
     @error($name)
-        <p class="field-error">{{ $message }}</p>
+        <p id="{{ $fieldId }}-error" class="field-error">{{ $message }}</p>
     @enderror
 </div>
