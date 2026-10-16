@@ -8,6 +8,7 @@ use App\Http\Controllers\Dosen\GradeController;
 use App\Http\Controllers\Dosen\MaterialController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\GradeSummaryController;
+use App\Http\Controllers\Mahasiswa\AssignmentController as MahasiswaAssignmentController;
 use App\Http\Controllers\Mahasiswa\SubmissionController;
 use App\Http\Controllers\MaterialDownloadController;
 use App\Http\Controllers\SubmissionDownloadController;
@@ -29,7 +30,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Logout
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
-    Route::get('/materials/{material}/download', MaterialDownloadController::class)->name('materials.download');
+
+    // Endpoint Unduh Berkas Privat (Diakses via Controller & Policy)
+    Route::get('/materials/{material}/download', MaterialDownloadController::class)
+        ->name('materials.download');
     Route::get('/submissions/{submission}/download', SubmissionDownloadController::class)
         ->name('submissions.download');
 
@@ -49,10 +53,15 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Group Dosen
-    Route::prefix('dosen')->name('dosen.')->group(function () {
+    Route::middleware(['role:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
         Route::scopeBindings()->group(function () {
             Route::resource('courses.materials', MaterialController::class)->shallow();
             Route::resource('courses.assignments', AssignmentController::class)->shallow();
+            
+            // Monitoring Pengumpulan Tugas & Penilaian (Langkah 5)
+            Route::get('/assignments/{assignment}/submissions', [AssignmentController::class, 'submissions'])
+                ->name('assignments.submissions');
+            
             Route::get('/courses/{course}/grades', [GradeSummaryController::class, 'course'])
                 ->name('courses.grades.index');
             Route::put('/submissions/{submission}/grade', [GradeController::class, 'update'])
@@ -63,9 +72,12 @@ Route::middleware(['auth'])->group(function () {
     // Group Mahasiswa
     Route::middleware(['role:mahasiswa'])->prefix('mahasiswa')->name('mahasiswa.')->group(function () {
         Route::scopeBindings()->group(function () {
+            Route::get('/assignments/{assignment}', [MahasiswaAssignmentController::class, 'show'])
+                ->name('assignments.show');
             Route::post('/assignments/{assignment}/submissions', [SubmissionController::class, 'store'])
                 ->name('assignments.submissions.store');
-            Route::get('/grades', [GradeSummaryController::class, 'student'])->name('grades.index');
+            Route::get('/grades', [GradeSummaryController::class, 'student'])
+                ->name('grades.index');
         });
     });
 

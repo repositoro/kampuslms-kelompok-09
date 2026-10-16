@@ -29,18 +29,22 @@ class MaterialController extends Controller
         return view('dosen.materials.create', compact('course'));
     }
 
-    // Menyimpan data materi baru (metadata) ke database
+    // Menyimpan data materi baru (metadata & berkas) ke database
     public function store(StoreMaterialRequest $request, Course $course)
     {
         $data = $request->safe()->except('file');
+
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $data['type'] = 'file';
-            $data['file_path'] = $file->store('materials', 'local');
+            
+            // Disimpan di storage/app/private/materials/{course_id}/ dengan nama fisik acak
+            $data['file_path'] = $file->store("materials/{$course->id}", 'local');
             $data['original_name'] = basename($file->getClientOriginalName());
             $data['file_size'] = $file->getSize();
             $data['mime_type'] = $file->getMimeType();
         }
+
         $data['uploaded_by'] = $request->user()->id;
         $course->materials()->create($data);
 
@@ -69,21 +73,27 @@ class MaterialController extends Controller
     {
         $data = $request->safe()->except('file');
         $oldFilePath = $material->file_path;
+
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $data['type'] = 'file';
-            $data['file_path'] = $file->store('materials', 'local');
+            
+            // Disimpan di storage/app/private/materials/{course_id}/
+            $data['file_path'] = $file->store("materials/{$material->course_id}", 'local');
             $data['original_name'] = basename($file->getClientOriginalName());
             $data['file_size'] = $file->getSize();
             $data['mime_type'] = $file->getMimeType();
         }
+
         if (($data['type'] ?? $material->type) === 'link') {
             $data['file_path'] = null;
             $data['original_name'] = null;
             $data['file_size'] = null;
             $data['mime_type'] = null;
         }
+
         $material->update($data);
+
         if ($oldFilePath && $material->file_path !== $oldFilePath) {
             Storage::disk('local')->delete($oldFilePath);
         }
@@ -100,9 +110,11 @@ class MaterialController extends Controller
         Gate::authorize('delete', $material);
 
         $courseId = $material->course_id;
+
         if ($material->file_path) {
             Storage::disk('local')->delete($material->file_path);
         }
+
         $material->delete();
 
         return redirect()->route('courses.show', $courseId)

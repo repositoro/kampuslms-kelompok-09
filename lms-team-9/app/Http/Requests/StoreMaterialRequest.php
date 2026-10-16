@@ -22,10 +22,11 @@ class StoreMaterialRequest extends FormRequest
             'type' => ['required', Rule::in(['file', 'link'])],
             'file' => [
                 Rule::requiredIf(fn () => $this->input('type') === 'file'),
+                'nullable',
                 'file',
-                'mimes:pdf,pptx',
-                'extensions:pdf,pptx',
-                'max:10240',
+                'mimes:pdf,pptx,ppt,docx,doc',
+                'extensions:pdf,pptx,ppt,docx,doc',
+                'max:20480', // 20 MB (20480 KB)
             ],
             'external_url' => [
                 Rule::requiredIf(fn () => $this->input('type') === 'link'),
@@ -34,6 +35,19 @@ class StoreMaterialRequest extends FormRequest
                 'regex:/\Ahttps?:\/\//i',
                 'max:2048',
             ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'title.required' => 'Judul materi wajib diisi.',
+            'type.required' => 'Pilih jenis materi (berkas atau tautan).',
+            'file.required_if' => 'Berkas materi wajib diunggah jika memilih opsi berkas.',
+            'file.mimes' => 'Format berkas harus berupa PDF, PPT, PPTX, DOC, atau DOCX.',
+            'file.max' => 'Ukuran berkas maksimal adalah 20 MB.',
+            'external_url.required_if' => 'Tautan eksternal wajib diisi jika memilih opsi tautan.',
+            'external_url.url' => 'Format tautan eksternal tidak valid.',
         ];
     }
 }

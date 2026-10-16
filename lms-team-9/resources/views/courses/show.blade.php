@@ -7,6 +7,7 @@
             @endcan
         </x-slot:actions>
     </x-page-header>
+
     @if (auth()->user()->role === 'admin' || auth()->user()->role === 'dosen')
         <x-tabs :tabs="[
             ['label' => 'Ringkasan', 'route' => 'courses.show', 'parameters' => [$course]],
@@ -22,6 +23,7 @@
             ['label' => 'Nilai saya', 'route' => 'mahasiswa.grades.index'],
         ]" />
     @endif
+
     <div class="dashboard-grid">
         <x-card title="Ringkasan mata kuliah">
             <p>{{ $course->description ?: 'Belum ada deskripsi mata kuliah.' }}</p>
@@ -46,6 +48,7 @@
             </x-card>
         @endif
     </div>
+
     @if ($canManageEnrollment)
         <x-card title="Peserta terdaftar" id="peserta">
             <x-table>
@@ -71,12 +74,40 @@
             </x-table>
         </x-card>
     @endif
+
+    {{-- Kartu Daftar Materi Perkuliahan --}}
+    <x-card title="Materi perkuliahan">
+        @forelse ($course->materials as $material)
+            <div class="list-row">
+                <div>
+                    <strong>{{ $material->title }}</strong>
+                    @if ($material->description)
+                        <p class="muted">{{ $material->description }}</p>
+                    @endif
+                </div>
+                <div>
+                    @if ($material->type === 'file')
+                        <a class="button button--small" href="{{ route('materials.download', $material) }}">Unduh berkas</a>
+                    @else
+                        <a class="button button--secondary button--small" href="{{ $material->external_url }}" target="_blank" rel="noopener noreferrer">Buka tautan</a>
+                    @endif
+                </div>
+            </div>
+        @empty
+            <x-empty-state title="Belum ada materi perkuliahan" />
+        @endforelse
+    </x-card>
+
+    {{-- Kartu Daftar Tugas --}}
     <x-card title="Tugas">
         @forelse ($course->assignments as $assignment)
             @php($submission = $assignment->submissions->first())
             <div class="list-row">
                 <div>
-                    <a href="{{ route('dosen.assignments.show', $assignment) }}"><strong>{{ $assignment->title }}</strong></a>
+                    {{-- Tautan dinamis ke detail tugas sesuai role user --}}
+                    <a href="{{ auth()->user()->role === 'mahasiswa' ? route('mahasiswa.assignments.show', $assignment) : route('dosen.assignments.show', $assignment) }}">
+                        <strong>{{ $assignment->title }}</strong>
+                    </a>
                     <p class="muted">Tenggat: {{ $assignment->due_at->format('d M Y, H:i') }}</p>
                     @if (auth()->user()->role === 'mahasiswa')
                         <x-badge :variant="!$submission ? 'neutral' : ($submission->grade ? 'success' : ($submission->is_late ? 'danger' : 'info'))">

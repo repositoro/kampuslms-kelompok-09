@@ -4,6 +4,7 @@
         <a href="{{ route('dosen.courses.assignments.index', $assignment->course) }}">Tugas</a>
         <span>Detail</span>
     </x-breadcrumb>
+
     <x-page-header title="{{ $assignment->title }}" subtitle="{{ $assignment->course->name }}">
         <x-slot:actions>
             @can('update', $assignment)
@@ -19,6 +20,7 @@
             @endcan
         </x-slot:actions>
     </x-page-header>
+
     <x-card title="Informasi tugas">
         <div class="status-row">
             <x-badge :variant="$assignment->status === 'published' ? 'success' : 'neutral'">{{ $assignment->status === 'published' ? 'Terbit' : 'Draf' }}</x-badge>
@@ -73,8 +75,8 @@
                     @if ($isPastDue && $assignment->allow_late)
                         <x-alert variant="warning">Pengumpulan ini akan tercatat sebagai terlambat.</x-alert>
                     @endif
-                    <x-form-field name="file" label="Berkas tugas" hint="PDF, DOC, DOCX, atau ZIP. Ukuran maksimal 10 MB." :required="true">
-                        <x-file-input id="file" name="file" accept=".pdf,.doc,.docx,.zip" required />
+                    <x-form-field name="file" label="Berkas tugas" hint="PDF, DOC, DOCX, ZIP, atau RAR. Ukuran maksimal 20 MB." :required="true">
+                        <x-file-input id="file" name="file" accept=".pdf,.doc,.docx,.zip,.rar" required />
                     </x-form-field>
                     <x-form-field name="note" label="Catatan (opsional)">
                         <x-textarea id="note" name="note">{{ old('note') }}</x-textarea>

@@ -18,7 +18,10 @@ class SubmissionController extends Controller
             $request->validated('note'),
         );
 
-        return redirect()->route('dosen.assignments.show', $assignment)
-            ->with('success', $created ? 'Tugas berhasil dikumpulkan.' : 'Pengumpulan tugas berhasil diperbarui.');
+        // Gunakan back() agar mahasiswa kembali ke halaman sebelumnya dengan pesan sukses
+        return back()->with(
+            'success',
+            $created ? 'Tugas berhasil dikumpulkan.' : 'Pengumpulan tugas berhasil diperbarui.'
+        );
     }
 }
