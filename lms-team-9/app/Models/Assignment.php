@@ -15,6 +15,7 @@ class Assignment extends Model
 
     protected static function booted(): void
     {
+        // Otomatis hapus seluruh file fisik submission di storage saat assignment dihapus
         static::deleting(function (Assignment $assignment): void {
             $filePaths = $assignment->submissions()
                 ->whereNotNull('file_path')
@@ -28,8 +29,14 @@ class Assignment extends Model
     }
 
     protected $fillable = [
-        'course_id', 'created_by', 'title', 'instructions',
-        'due_at', 'max_score', 'allow_late', 'status',
+        'course_id',
+        'created_by',
+        'title',
+        'instructions',
+        'due_at',
+        'max_score',
+        'allow_late',
+        'status',
     ];
 
     protected function casts(): array
@@ -43,6 +50,11 @@ class Assignment extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function submissions(): HasMany

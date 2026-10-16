@@ -12,20 +12,24 @@ class GradeController extends Controller
 {
     public function update(GradeRequest $request, Submission $submission)
     {
+        // Otorisasi Dosen
         Gate::authorize('create', [Grade::class, $submission]);
+
         $data = $request->validated();
 
-        Grade::updateOrCreate(
+        // Gunakan relasi $submission->grade() agar lebih simetris dan rapi
+        $submission->grade()->updateOrCreate(
             ['submission_id' => $submission->id],
             [
                 'graded_by' => $request->user()->id,
-                'score' => $data['score'],
-                'feedback' => $data['feedback'] ?? null,
+                'score'     => $data['score'],
+                'feedback'  => $data['feedback'] ?? null,
                 'graded_at' => now(),
-            ],
+            ]
         );
 
-        return redirect()->route('dosen.assignments.show', $submission->assignment)
-            ->with('success', 'Nilai berhasil disimpan.');
+        // Gunakan back() agar dosen tetap berada di halaman tempat dia mengisi nilai 
+        // (baik dari halaman detail tugas maupun halaman monitoring pengumpulan)
+        return back()->with('success', 'Nilai berhasil disimpan.');
     }
 }

@@ -4,11 +4,21 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateGradeRequest extends FormRequest
 {
-    public function authorize() { return true; }
-    public function rules() {
+    public function authorize(): bool
+    {
+        $submission = $this->route('submission');
+        return $this->user()->role === 'admin'
+        || ($this->user()->role === 'dosen' && $submission->assignment->course->lecturer_id === $this->user()->id);
+    }
+
+    public function rules(): array
+    {
+        $maxScore = $this->route('submission')->assignment->max_score ?? 100;
+
         return [
-            'score' => 'required|integer|min:0|max:100',
-            'feedback' => 'nullable|string',
+            'score' => ['required', 'numeric', 'min:0', 'max:' . $maxScore],
+            'feedback' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }
+   
