@@ -33,7 +33,7 @@
                     @if (!$submission)
                         <p>Sisa {{ $remaining->days }} hari {{ $remaining->h }} jam</p>
                     @endif
-                    <p><a href="{{ route('mahasiswa.assignments.show', $assignment) }}">Lihat tugas</a></p>
+                    <p><a href="{{ route('dosen.assignments.show', $assignment) }}">Lihat tugas</a></p>
                 </article>
             @empty
                 <x-empty-state title="Tidak ada tugas aktif mendatang" />

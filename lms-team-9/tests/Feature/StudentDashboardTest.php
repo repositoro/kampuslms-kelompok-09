@@ -16,26 +16,33 @@ class StudentDashboardTest extends TestCase
     {
         $lecturer = User::factory()->create(['role' => 'dosen']);
         $student = User::factory()->create(['role' => 'mahasiswa']);
+
         $course = Course::factory()->create([
             'lecturer_id' => $lecturer->id,
             'name' => 'Pemrograman Web',
         ]);
+
         $course->students()->attach($student->id, ['enrolled_at' => now()]);
+
+        // Catatan: Jika active() belum didefinisikan di AssignmentFactory, hapus ->active()
         $assignment = Assignment::factory()->active()->create([
             'course_id' => $course->id,
             'created_by' => $lecturer->id,
             'title' => 'Tugas Mendatang',
         ]);
 
+        // 1. Tes Tampilan Mahasiswa
         $this->actingAs($student)
             ->get('/dashboard')
             ->assertOk()
             ->assertSee('Tugas Mendatang')
             ->assertSee('Pemrograman Web');
 
-        $this->get(route('dosen.assignments.show', $assignment))
+        // 2. Tes Tampilan Dosen (Switch login ke Dosen)
+        $this->actingAs($lecturer)
+            ->get(route('dosen.assignments.show', $assignment))
             ->assertOk()
-            ->assertSee('Kumpul Tugas')
-            ->assertDontSee('Pengumpulan mahasiswa');
+            ->assertSee('Pengumpulan mahasiswa') // Pastikan teks ini SAMA PERSIS dengan Blade dosen
+            ->assertDontSee('Kumpul Tugas');
     }
 }
