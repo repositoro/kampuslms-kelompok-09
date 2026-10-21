@@ -54,8 +54,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
         });
 
-        // ====== KHUSUS DOSEN ======
-        Route::middleware('role:dosen')->group(function () {
+        // ====== MATERI & TUGAS: admin atau dosen pengampu ======
+        // Sesuai docs/api.md, pengelolaan materi dan tugas boleh dilakukan admin
+        // maupun dosen pengampu. Kepemilikan course tetap dicek MaterialPolicy
+        // dan AssignmentPolicy.
+        Route::middleware('role:admin,dosen')->group(function () {
             Route::post('/courses/{course}/materials', [MaterialController::class, 'store'])->name('courses.materials.store');
             Route::put('/materials/{material}', [MaterialController::class, 'update'])->name('materials.update');
             Route::patch('/materials/{material}', [MaterialController::class, 'update']);
@@ -65,7 +68,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
             Route::patch('/assignments/{assignment}', [AssignmentController::class, 'update']);
             Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
+        });
 
+        // ====== PENILAIAN: hanya dosen pengampu ======
+        Route::middleware('role:dosen')->group(function () {
             Route::post('/submissions/{submission}/grade', [GradeController::class, 'store'])->name('submissions.grade.store');
             Route::put('/submissions/{submission}/grade', [GradeController::class, 'update'])->name('submissions.grade.update');
         });

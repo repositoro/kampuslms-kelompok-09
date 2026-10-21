@@ -7,12 +7,19 @@
             @endcan
         </x-slot:actions>
     </x-page-header>
-    <x-tabs :tabs="[
-        ['label' => 'Ringkasan', 'route' => 'courses.show', 'parameters' => [$course]],
-        ['label' => 'Materi', 'route' => 'dosen.courses.materials.index', 'parameters' => [$course], 'active' => 'dosen.courses.materials.*'],
-        ['label' => 'Tugas', 'route' => 'dosen.courses.assignments.index', 'parameters' => [$course], 'active' => 'dosen.courses.assignments.*'],
-        ['label' => 'Rekap nilai', 'route' => 'dosen.courses.grades.index', 'parameters' => [$course], 'active' => 'dosen.courses.grades.*'],
-    ]" />
+    @php
+        $tabs = [
+            ['label' => 'Ringkasan', 'route' => 'courses.show', 'parameters' => [$course]],
+            ['label' => 'Materi', 'route' => 'dosen.courses.materials.index', 'parameters' => [$course], 'active' => 'dosen.courses.materials.*'],
+            ['label' => 'Tugas', 'route' => 'dosen.courses.assignments.index', 'parameters' => [$course], 'active' => 'dosen.courses.assignments.*'],
+        ];
+
+        // Rekap nilai hanya bisa dibuka dosen pengampu mata kuliah tersebut.
+        if (Gate::allows('viewCourse', [App\Models\Grade::class, $course])) {
+            $tabs[] = ['label' => 'Rekap nilai', 'route' => 'dosen.courses.grades.index', 'parameters' => [$course], 'active' => 'dosen.courses.grades.*'];
+        }
+    @endphp
+    <x-tabs :tabs="$tabs" />
     <x-card title="Daftar tugas">
         <x-table>
             <thead><tr><th>Judul</th><th>Tenggat</th><th>Status</th><th>Pengumpulan</th><th>Aksi</th></tr></thead>

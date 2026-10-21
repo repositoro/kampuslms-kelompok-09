@@ -80,4 +80,33 @@ class CourseMaterialAssignmentPagesTest extends TestCase
 
         $this->actingAs($student)->get("/courses/{$course->id}")->assertForbidden();
     }
+
+    public function test_submission_monitoring_page_is_limited_to_course_owner_and_admin(): void
+    {
+        $owner = User::factory()->create(['role' => 'dosen']);
+        $other = User::factory()->create(['role' => 'dosen']);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $student = User::factory()->create(['role' => 'mahasiswa']);
+        $course = Course::factory()->create(['lecturer_id' => $owner->id]);
+        $course->students()->attach($student->id, ['enrolled_at' => now()]);
+        $assignment = Assignment::factory()->create([
+            'course_id' => $course->id,
+            'created_by' => $owner->id,
+        ]);
+
+        $this->actingAs($owner)
+            ->get("/dosen/assignments/{$assignment->id}/submissions")
+            ->assertOk()
+            ->assertSee('Pengumpulan tugas');
+        $this->actingAs($admin)
+            ->get("/dosen/assignments/{$assignment->id}/submissions")
+            ->assertOk();
+
+        $this->actingAs($other)
+            ->get("/dosen/assignments/{$assignment->id}/submissions")
+            ->assertForbidden();
+        $this->actingAs($student)
+            ->get("/dosen/assignments/{$assignment->id}/submissions")
+            ->assertForbidden();
+    }
 }

@@ -134,7 +134,7 @@
                     </tbody>
                 </x-table>
             @endif
-            @if (Route::has('dosen.courses.grades.index'))
+            @if (Route::has('dosen.courses.grades.index') && Gate::allows('viewCourse', [App\Models\Grade::class, $assignment->course]))
                 <p><a href="{{ route('dosen.courses.grades.index', $assignment->course) }}">Buka rekap nilai mata kuliah</a></p>
             @endif
         </x-card>

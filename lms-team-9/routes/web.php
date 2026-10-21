@@ -53,19 +53,42 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Group Dosen
-    Route::middleware(['role:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
+    // Prefix "dosen" hanya penanda area UI, bukan penentu hak akses. Karena itu
+    // middleware role dipasang per aksi, bukan satu blok untuk seluruh grup:
+    //   - halaman baca dipakai bersama oleh admin, dosen pengampu, dan mahasiswa
+    //     terdaftar; keputusan akhir tetap diambil policy (CoursePolicy,
+    //     MaterialPolicy, AssignmentPolicy).
+    //   - halaman pengelolaan hanya untuk admin dan dosen pengampu.
+    //   - rekap nilai dan pemberian nilai hanya untuk dosen pengampu.
+    Route::prefix('dosen')->name('dosen.')->group(function () {
         Route::scopeBindings()->group(function () {
-            Route::resource('courses.materials', MaterialController::class)->shallow();
-            Route::resource('courses.assignments', AssignmentController::class)->shallow();
-            
-            // Monitoring Pengumpulan Tugas & Penilaian (Langkah 5)
-            Route::get('/assignments/{assignment}/submissions', [AssignmentController::class, 'submissions'])
-                ->name('assignments.submissions');
-            
-            Route::get('/courses/{course}/grades', [GradeSummaryController::class, 'course'])
-                ->name('courses.grades.index');
-            Route::put('/submissions/{submission}/grade', [GradeController::class, 'update'])
-                ->name('submissions.grade.update');
+            // Halaman baca bersama: semua role boleh masuk, policy yang menyaring.
+            Route::middleware('role:dosen,admin,mahasiswa')->group(function () {
+                Route::resource('courses.materials', MaterialController::class)->shallow()->only(['index']);
+                Route::resource('courses.assignments', AssignmentController::class)->shallow()->only(['index']);
+                Route::get('/materials/{material}', [MaterialController::class, 'show'])
+                    ->name('materials.show');
+                Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])
+                    ->name('assignments.show');
+            });
+
+            // Area pengelolaan materi & tugas: admin atau dosen pengampu.
+            Route::middleware('role:dosen,admin')->group(function () {
+                Route::resource('courses.materials', MaterialController::class)->shallow()->except(['index', 'show']);
+                Route::resource('courses.assignments', AssignmentController::class)->shallow()->except(['index', 'show']);
+
+                // Monitoring Pengumpulan Tugas & Penilaian (Langkah 5)
+                Route::get('/assignments/{assignment}/submissions', [AssignmentController::class, 'submissions'])
+                    ->name('assignments.submissions');
+            });
+
+            // Rekap nilai dan pemberian nilai: hanya dosen pengampu mata kuliah.
+            Route::middleware('role:dosen')->group(function () {
+                Route::get('/courses/{course}/grades', [GradeSummaryController::class, 'course'])
+                    ->name('courses.grades.index');
+                Route::put('/submissions/{submission}/grade', [GradeController::class, 'update'])
+                    ->name('submissions.grade.update');
+            });
         });
     });
 
