@@ -17,7 +17,13 @@ class StoreSubmissionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file', 'mimes:pdf,doc,docx,zip', 'extensions:pdf,doc,docx,zip', 'max:10240'],
+            'file' => [
+                'required',
+                'file',
+                'mimes:pdf,doc,docx,zip,rar',
+                'extensions:pdf,doc,docx,zip,rar',
+                'max:20480', // 20 MB (20480 KB)
+            ],
             'note' => ['nullable', 'string', 'max:5000'],
         ];
     }
@@ -39,5 +45,15 @@ class StoreSubmissionRequest extends FormRequest
                 $validator->errors()->add('file', 'Tugas yang sudah dinilai tidak dapat dikumpulkan ulang.');
             }
         });
+    }
+
+    public function messages(): array
+    {
+        return [
+            'file.required' => 'Berkas tugas wajib diunggah.',
+            'file.mimes'    => 'Format berkas harus berupa PDF, DOC, DOCX, ZIP, atau RAR.',
+            'file.max'      => 'Ukuran berkas maksimal adalah 20 MB.',
+            'note.max'      => 'Catatan maksimal 5000 karakter.',
+        ];
     }
 }

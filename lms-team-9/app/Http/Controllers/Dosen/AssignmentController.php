@@ -15,15 +15,21 @@ class AssignmentController extends Controller
     public function index(Course $course)
     {
         Gate::authorize('view', $course);
+        $user = auth()->user();
         $assignments = $course->assignments()->with('course');
-        if (auth()->user()->role === 'mahasiswa') {
+        if ($user->role === 'mahasiswa') {
+            // Mahasiswa hanya melihat tugas published. Jumlah pengumpulan yang
+            // ditampilkan juga dibatasi pada pengumpulan miliknya sendiri.
             $assignments
                 ->where('status', 'published')
                 ->with(['submissions' => fn ($query) => $query
-                    ->where('user_id', auth()->id())
-                    ->with('grade')]);
+                    ->where('user_id', $user->id)
+                    ->with('grade')])
+                ->withCount(['submissions' => fn ($query) => $query->where('user_id', $user->id)]);
+        } else {
+            $assignments->withCount(['submissions', 'grades']);
         }
-        $assignments = $assignments->withCount(['submissions', 'grades'])->latest()->paginate(15);
+        $assignments = $assignments->latest()->paginate(15);
 
         return view('dosen.assignments.index', compact('course', 'assignments'));
     }
@@ -81,6 +87,16 @@ class AssignmentController extends Controller
             'submissionCount',
             'gradedSubmissionCount',
         ));
+    }
+
+    // Monitoring pengumpulan tugas pada satu assignment (hanya admin dan dosen pengampu)
+    public function submissions(Assignment $assignment)
+    {
+        Gate::authorize('viewAny', [Submission::class, $assignment]);
+
+        $assignment->load(['submissions.student', 'submissions.grade']);
+
+        return view('dosen.assignments.submissions', compact('assignment'));
     }
 
     // Menampilkan formulir edit tugas (Shallow Route)
