@@ -1,7 +1,11 @@
 <x-layout title="Detail Tugas">
     <x-breadcrumb>
         <a href="{{ route('courses.show', $assignment->course) }}">{{ $assignment->course->name }}</a>
-        <a href="{{ route('dosen.courses.assignments.index', $assignment->course) }}">Tugas</a>
+        @if (auth()->user()->role === 'dosen')
+            <a href="{{ route('dosen.courses.assignments.index', $assignment->course) }}">Tugas</a>
+        @else
+            <a href="{{ route('courses.show', $assignment->course) }}">Tugas</a>
+        @endif
         <span>Detail</span>
     </x-breadcrumb>
 
