@@ -11,6 +11,7 @@ use App\Http\Controllers\GradeSummaryController;
 use App\Http\Controllers\Mahasiswa\AssignmentController as MahasiswaAssignmentController;
 use App\Http\Controllers\Mahasiswa\SubmissionController;
 use App\Http\Controllers\MaterialDownloadController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SubmissionDownloadController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -103,5 +104,9 @@ Route::middleware(['auth'])->group(function () {
                 ->name('grades.index');
         });
     });
+
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 
 });

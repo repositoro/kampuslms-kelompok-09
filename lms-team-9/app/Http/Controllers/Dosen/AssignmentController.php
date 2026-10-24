@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Dosen;
 
+use App\Events\AssignmentPublished;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAssignmentRequest;
 use App\Http\Requests\UpdateAssignmentRequest;
@@ -46,10 +47,14 @@ class AssignmentController extends Controller
     // Menyimpan data tugas perkuliahan (metadata) ke database
     public function store(StoreAssignmentRequest $request, Course $course)
     {
-        $course->assignments()->create([
+        $assignment = $course->assignments()->create([
             ...$request->validated(),
             'created_by' => $request->user()->id,
         ]);
+
+        if ($assignment->status === 'published') {
+            AssignmentPublished::dispatch($assignment);
+        }
 
         return redirect()->route('courses.show', $course)
             ->with('success', 'Tugas berhasil dibuat.');
