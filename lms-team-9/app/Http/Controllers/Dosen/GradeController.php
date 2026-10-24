@@ -18,7 +18,7 @@ class GradeController extends Controller
         $data = $request->validated();
 
         // Gunakan relasi $submission->grade() agar lebih simetris dan rapi
-        $submission->grade()->updateOrCreate(
+        $grade = $submission->grade()->updateOrCreate(
             ['submission_id' => $submission->id],
             [
                 'graded_by' => $request->user()->id,
@@ -27,6 +27,8 @@ class GradeController extends Controller
                 'graded_at' => now(),
             ]
         );
+
+        \App\Events\GradeRecorded::dispatch($grade);
 
         // Gunakan back() agar dosen tetap berada di halaman tempat dia mengisi nilai 
         // (baik dari halaman detail tugas maupun halaman monitoring pengumpulan)

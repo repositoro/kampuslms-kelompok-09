@@ -41,6 +41,10 @@ class AssignmentController extends Controller
             'created_by' => $request->user()->id,
         ]);
 
+        if ($assignment->status === 'published') {
+            \App\Events\AssignmentPublished::dispatch($assignment);
+        }
+
         return new AssignmentResource($assignment);
     }
 
@@ -53,7 +57,12 @@ class AssignmentController extends Controller
 
     public function update(UpdateAssignmentRequest $request, Assignment $assignment)
     {
+        $wasPublished = $assignment->status === 'published';
         $assignment->update($request->validated());
+
+        if (! $wasPublished && $assignment->status === 'published') {
+            \App\Events\AssignmentPublished::dispatch($assignment);
+        }
 
         return new AssignmentResource($assignment);
     }

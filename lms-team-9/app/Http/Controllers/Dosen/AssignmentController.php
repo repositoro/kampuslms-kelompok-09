@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Dosen;
 
+use App\Events\AssignmentPublished;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAssignmentRequest;
 use App\Http\Requests\UpdateAssignmentRequest;
@@ -46,10 +47,14 @@ class AssignmentController extends Controller
     // Menyimpan data tugas perkuliahan (metadata) ke database
     public function store(StoreAssignmentRequest $request, Course $course)
     {
-        $course->assignments()->create([
+        $assignment = $course->assignments()->create([
             ...$request->validated(),
             'created_by' => $request->user()->id,
         ]);
+
+        if ($assignment->status === 'published') {
+            AssignmentPublished::dispatch($assignment);
+        }
 
         return redirect()->route('courses.show', $course)
             ->with('success', 'Tugas berhasil dibuat.');
@@ -71,7 +76,7 @@ class AssignmentController extends Controller
                 ->first();
             $canSubmit = Gate::allows('create', [Submission::class, $assignment])
                 && ($assignment->allow_late || now()->lessThanOrEqualTo($assignment->due_at))
-                && ! $submission?->grade;
+                && ! $submission;
         } else {
             $assignment->load(['submissions.student', 'submissions.grade']);
             $submissionCount = $assignment->submissions->count();
@@ -111,7 +116,12 @@ class AssignmentController extends Controller
     // Memperbarui metadata tugas perkuliahan
     public function update(UpdateAssignmentRequest $request, Assignment $assignment)
     {
+        $wasPublished = $assignment->status === 'published';
         $assignment->update($request->validated());
+
+        if (! $wasPublished && $assignment->status === 'published') {
+            AssignmentPublished::dispatch($assignment);
+        }
 
         return redirect()->route('courses.show', $assignment->course_id)
             ->with('success', 'Tugas berhasil diperbarui.');

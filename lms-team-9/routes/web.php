@@ -40,6 +40,16 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard Utama
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
+    // Notifikasi (Milestone M3 Langkah 4 & 5)
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::patch('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])
+        ->name('notifications.read');
+    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])
+        ->name('notifications.mark-all-read');
+    Route::get('/notifications/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])
+        ->name('notifications.unread-count');
+
     // Mata Kuliah Utama
     Route::resource('courses', CourseController::class);
     Route::post('/courses/{course}/enrollments', [EnrollmentController::class, 'store'])

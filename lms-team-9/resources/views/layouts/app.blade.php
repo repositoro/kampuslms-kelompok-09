@@ -72,6 +72,40 @@
                 <footer class="content"><span>KampusLMS · Sistem Pembelajaran Perkuliahan</span></footer>
             </div>
         </div>
+        <script>
+            // Milestone M3 (4): Polling jumlah notifikasi belum dibaca setiap 30 detik
+            (function() {
+                const notifLink = document.querySelector('.notification-link');
+                if (!notifLink) return;
+
+                function updateCount() {
+                    fetch('{{ route('notifications.unread-count') }}', {
+                        headers: { 'Accept': 'application/json' },
+                        credentials: 'same-origin'
+                    })
+                    .then(res => res.ok ? res.json() : null)
+                    .then(data => {
+                        if (!data) return;
+                        let countBadge = notifLink.querySelector('.notification-count');
+                        if (data.count > 0) {
+                            if (countBadge) {
+                                countBadge.textContent = data.count;
+                            } else {
+                                countBadge = document.createElement('span');
+                                countBadge.className = 'notification-count';
+                                countBadge.textContent = data.count;
+                                notifLink.appendChild(countBadge);
+                            }
+                        } else if (countBadge) {
+                            countBadge.remove();
+                        }
+                    })
+                    .catch(() => {});
+                }
+
+                setInterval(updateCount, 30000);
+            })();
+        </script>
     @else
         <div class="guest-shell">
             <main class="guest-content">
