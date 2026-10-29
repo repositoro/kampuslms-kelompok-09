@@ -3,18 +3,10 @@
 namespace App\Notifications;
 
 use App\Models\Assignment;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Log;
 
-class NewAssignmentNotification extends Notification implements ShouldQueue
+class NewAssignmentNotification extends Notification
 {
-    use Queueable;
-
-    public int $tries = 3;
-    public int $backoff = 10;
-
     public function __construct(public Assignment $assignment) {}
 
     public function via(object $notifiable): array
@@ -24,23 +16,17 @@ class NewAssignmentNotification extends Notification implements ShouldQueue
 
     public function toDatabase(object $notifiable): array
     {
+        $this->assignment->loadMissing('course');
+
         return [
             'type'            => 'assignment_published',
             'assignment_id'   => $this->assignment->id,
             'course_id'       => $this->assignment->course_id,
-            'course_name'     => $this->assignment->course->name,
+            'course_name'     => $this->assignment->course?->name ?? 'Mata Kuliah',
             'title'           => $this->assignment->title,
             'due_at'          => $this->assignment->due_at?->toIso8601String(),
             'message'         => 'Tugas baru: ' . $this->assignment->title,
             'url'             => route('dosen.assignments.show', $this->assignment),
         ];
-    }
-
-    public function failed(?\Throwable $exception = null): void
-    {
-        Log::error('Gagal memproses pengiriman notifikasi NewAssignmentNotification.', [
-            'assignment_id' => $this->assignment->id,
-            'error'         => $exception?->getMessage(),
-        ]);
     }
 }

@@ -24,6 +24,13 @@ class CourseMaterialAssignmentPagesTest extends TestCase
             'type' => 'link',
             'external_url' => 'https://example.test',
         ]);
+        Material::create([
+            'course_id' => $course->id,
+            'uploaded_by' => $lecturer->id,
+            'title' => 'Materi kedua',
+            'type' => 'link',
+            'external_url' => 'https://example.test/second',
+        ]);
         $assignment = Assignment::factory()->create([
             'course_id' => $course->id,
             'created_by' => $lecturer->id,

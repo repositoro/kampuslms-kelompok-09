@@ -17,7 +17,9 @@ class SendSubmissionNotification implements ShouldQueue
 
     public function handle(SubmissionSubmitted $event): void
     {
-        $lecturer = $event->submission->assignment->course->lecturer;
+        // Pencegahan lazy loading violation saat berjalan di antrean background worker
+        $event->submission->loadMissing('assignment.course.lecturer');
+        $lecturer = $event->submission->assignment?->course?->lecturer;
 
         if ($lecturer) {
             $lecturer->notify(new SubmissionSubmittedNotification($event->submission));

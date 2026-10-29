@@ -34,6 +34,7 @@ class CourseController extends Controller
         $course->load([
             'lecturer',
             'students',
+            'materials',
             'assignments' => function ($query) use ($user) {
                 if ($user->role === 'mahasiswa') {
                     $query->where('status', 'published');
