@@ -13,13 +13,17 @@ class AssignmentPolicy
         if ($user->role === 'admin') {
             return true;
         }
+
+        $course = $assignment->relationLoaded('course') ? $assignment->course : $assignment->course()->first();
+
         if ($user->role === 'dosen') {
-            return $assignment->course->lecturer_id === $user->id;
+            return $course && $course->lecturer_id === $user->id;
         }
 
         return $user->role === 'mahasiswa'
             && $assignment->status === 'published'
-            && $user->can('view', $assignment->course);
+            && $course !== null
+            && $user->can('view', $course);
     }
 
     public function create(User $user, Course $course): bool
@@ -30,8 +34,17 @@ class AssignmentPolicy
 
     public function update(User $user, Assignment $assignment): bool
     {
-        return $user->role === 'admin'
-            || ($user->role === 'dosen' && $assignment->course->lecturer_id === $user->id);
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        if ($user->role !== 'dosen') {
+            return false;
+        }
+
+        $course = $assignment->relationLoaded('course') ? $assignment->course : $assignment->course()->first();
+
+        return $course && $course->lecturer_id === $user->id;
     }
 
     public function delete(User $user, Assignment $assignment): bool

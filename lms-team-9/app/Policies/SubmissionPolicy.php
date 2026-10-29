@@ -13,8 +13,10 @@ class SubmissionPolicy
      */
     public function viewAny(User $user, Assignment $assignment): bool
     {
+        $assignment->loadMissing('course');
+
         return $user->role === 'admin'
-            || ($user->role === 'dosen' && $assignment->course->lecturer_id === $user->id);
+            || ($user->role === 'dosen' && $assignment->course?->lecturer_id === $user->id);
     }
 
     /**
@@ -26,14 +28,16 @@ class SubmissionPolicy
             return true;
         }
 
+        $submission->loadMissing('assignment.course');
+
         if ($user->role === 'dosen') {
-            return $submission->assignment->course->lecturer_id === $user->id;
+            return $submission->assignment?->course?->lecturer_id === $user->id;
         }
 
         // Mahasiswa pemilik tugas yang terdaftar di mata kuliah diizinkan mengunduh/melihat
         return $user->role === 'mahasiswa'
             && $submission->user_id === $user->id
-            && $submission->assignment->course->students()->whereKey($user->id)->exists();
+            && (bool) $submission->assignment?->course?->students()->whereKey($user->id)->exists();
     }
 
     /**
@@ -41,9 +45,11 @@ class SubmissionPolicy
      */
     public function create(User $user, Assignment $assignment): bool
     {
+        $assignment->loadMissing('course');
+
         return $user->role === 'mahasiswa'
             && ($assignment->status ?? 'published') === 'published'
-            && $assignment->course->students()->whereKey($user->id)->exists();
+            && (bool) $assignment->course?->students()->whereKey($user->id)->exists();
     }
 
     /**

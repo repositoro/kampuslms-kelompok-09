@@ -11,18 +11,27 @@ class GradePolicy
 {
     public function view(User $user, Grade $grade): bool
     {
-        return $user->can('view', $grade->submission);
+        $grade->loadMissing('submission');
+
+        return $grade->submission ? $user->can('view', $grade->submission) : false;
     }
 
     public function create(User $user, Submission $submission): bool
     {
-        return $user->role === 'dosen'
-            && $submission->assignment->course->lecturer_id === $user->id;
+        if ($user->role !== 'dosen') {
+            return false;
+        }
+
+        $submission->loadMissing('assignment.course');
+
+        return $submission->assignment?->course?->lecturer_id === $user->id;
     }
 
     public function update(User $user, Grade $grade): bool
     {
-        return $this->create($user, $grade->submission);
+        $grade->loadMissing('submission');
+
+        return $grade->submission ? $this->create($user, $grade->submission) : false;
     }
 
     public function viewCourse(User $user, Course $course): bool

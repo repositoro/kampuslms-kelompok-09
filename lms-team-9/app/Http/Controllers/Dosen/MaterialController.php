@@ -15,7 +15,7 @@ class MaterialController extends Controller
     public function index(Course $course)
     {
         Gate::authorize('view', $course);
-        $materials = $course->materials()->latest()->paginate(15);
+        $materials = $course->materials()->with('course')->latest()->paginate(15);
 
         return view('dosen.materials.index', compact('course', 'materials'));
     }

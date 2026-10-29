@@ -10,7 +10,9 @@ class MaterialPolicy
 {
     public function view(User $user, Material $material): bool
     {
-        return $user->can('view', $material->course);
+        $course = $material->relationLoaded('course') ? $material->course : $material->course()->first();
+
+        return $course ? $user->can('view', $course) : false;
     }
 
     public function create(User $user, Course $course): bool
@@ -21,8 +23,17 @@ class MaterialPolicy
 
     public function update(User $user, Material $material): bool
     {
-        return $user->role === 'admin'
-            || ($user->role === 'dosen' && $material->course->lecturer_id === $user->id);
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        if ($user->role !== 'dosen') {
+            return false;
+        }
+
+        $course = $material->relationLoaded('course') ? $material->course : $material->course()->first();
+
+        return $course && $course->lecturer_id === $user->id;
     }
 
     public function delete(User $user, Material $material): bool

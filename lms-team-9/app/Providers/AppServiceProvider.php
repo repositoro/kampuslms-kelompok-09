@@ -37,21 +37,8 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($request->input('email').'|'.$request->ip());
         });
 
-        // Milestone M3 (1-8): Registrasi Event & Listener Asinkron
-        Event::listen(
-            \App\Events\AssignmentPublished::class,
-            \App\Listeners\SendAssignmentNotification::class
-        );
-
-        Event::listen(
-            \App\Events\GradeRecorded::class,
-            \App\Listeners\SendGradeNotification::class
-        );
-
-        Event::listen(
-            \App\Events\SubmissionSubmitted::class,
-            \App\Listeners\SendSubmissionNotification::class
-        );
+        // Event & Listener otomatis di-discover oleh sistem bawaan Laravel 11/12
+        // melalui type-hint handle(Event $event) pada setiap class di app/Listeners/
 
         // Milestone M3 (4): Bagikan unreadNotificationsCount ke layout
         View::composer('*', function ($view) {

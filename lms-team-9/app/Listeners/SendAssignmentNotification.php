@@ -18,8 +18,11 @@ class SendAssignmentNotification implements ShouldQueue
 
     public function handle(AssignmentPublished $event): void
     {
+        // Pencegahan lazy loading violation saat berjalan di antrean background worker
+        $event->assignment->loadMissing('course.students');
+
         // Pencegahan N+1: Ambil seluruh mahasiswa terdaftar secara langsung
-        $students = $event->assignment->course->students;
+        $students = $event->assignment->course?->students ?? collect();
 
         if ($students->isNotEmpty()) {
             Notification::send($students, new NewAssignmentNotification($event->assignment));
