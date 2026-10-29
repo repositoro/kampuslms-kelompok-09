@@ -61,9 +61,12 @@
                     <dt>Catatan</dt>
                     <dd>{{ $submission->note ?: '—' }}</dd>
                 </dl>
-                <a class="button button--secondary" href="{{ route('submissions.download', $submission) }}">Unduh berkas saya</a>
+                <div style="margin-top: 1rem;">
+                    <a class="button button--secondary" href="{{ route('submissions.download', $submission) }}">Unduh berkas saya</a>
+                </div>
+                <p class="muted" style="margin-top: 0.75rem;">✓ Anda telah mengumpulkan tugas ini dan tidak dapat mengumpulkan ulang.</p>
                 @if ($submission->grade)
-                    <div class="grade-result">
+                    <div class="grade-result" style="margin-top: 1rem;">
                         <h2>Hasil penilaian</h2>
                         <p class="grade-score">{{ $submission->grade->score }} <span>/ {{ $assignment->max_score }}</span></p>
                         <p><strong>Umpan balik dosen:</strong> {{ $submission->grade->feedback ?: 'Belum ada umpan balik.' }}</p>
@@ -75,7 +78,7 @@
                 <form action="{{ route('mahasiswa.assignments.submissions.store', $assignment) }}" method="POST"
                     enctype="multipart/form-data" class="form-stack submission-form">
                     @csrf
-                    <h2>{{ $submission ? 'Kumpul Ulang' : 'Kumpul Tugas' }}</h2>
+                    <h2>Kumpul Tugas</h2>
                     @if ($isPastDue && $assignment->allow_late)
                         <x-alert variant="warning">Pengumpulan ini akan tercatat sebagai terlambat.</x-alert>
                     @endif
@@ -85,7 +88,7 @@
                     <x-form-field name="note" label="Catatan (opsional)">
                         <x-textarea id="note" name="note">{{ old('note') }}</x-textarea>
                     </x-form-field>
-                    <x-button>{{ $submission ? 'Kumpul Ulang' : 'Kumpul Tugas' }}</x-button>
+                    <x-button>Kumpulkan Tugas</x-button>
                 </form>
             @elseif (!$submission && $isPastDue && !$assignment->allow_late)
                 <button class="button button--primary" type="button" disabled aria-describedby="deadline-reason">Pengumpulan ditutup</button>

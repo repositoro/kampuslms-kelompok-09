@@ -38,6 +38,8 @@ class GradeController extends Controller
             ],
         );
 
+        \App\Events\GradeRecorded::dispatch($grade);
+
         return (new GradeResource($grade))
             ->response()
             ->setStatusCode($created ? 201 : 200);

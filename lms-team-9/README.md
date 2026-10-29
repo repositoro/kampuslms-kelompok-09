@@ -57,6 +57,33 @@ API v1 menggunakan prefix `/api/v1`. Login melalui `POST /api/v1/auth/login`, gu
 
 `[BELUM DIDEPLOY — isi tautan aplikasi setelah tersedia]`
 
+## Antrean (Queue) & Notifikasi Asinkron (Milestone M3)
+
+KampusLMS menggunakan antrean asinkron berbasis database (`QUEUE_CONNECTION=database`) untuk memproses pekerjaan berat di latar belakang, seperti pengiriman notifikasi publikasi tugas baru dan notifikasi penilaian.
+
+### Menjalankan Queue Worker
+
+Di terminal terpisah pada direktori `lms-team-9`, jalankan:
+
+```sh
+php artisan queue:work
+```
+
+> ⚠️ **PENTING (Kegagalan Senyap):** Jika `QUEUE_CONNECTION=database` tetapi queue worker tidak dijalankan, job akan menumpuk di tabel `jobs` dan notifikasi tidak akan terkirim tanpa ada pesan error. Pastikan worker selalu berjalan.
+
+### Manajemen Job Gagal (Failed Jobs)
+
+Jika job mengalami kegagalan setelah seluruh batas percobaan (`$tries = 3`, `$backoff = 10`) habis, kegagalan akan dicatat ke log dan disimpan di tabel `failed_jobs`.
+
+- Memeriksa daftar job yang gagal:
+  ```sh
+  php artisan queue:failed
+  ```
+- Menjalankan ulang seluruh job yang gagal:
+  ```sh
+  php artisan queue:retry all
+  ```
+
 ## Pengujian
 
 ```sh

@@ -51,25 +51,25 @@
                 </div>
             @endif
 
-            {{-- Formulir Unggah / Ganti Berkas --}}
-            @if (!$submission || !$submission->grade)
+            {{-- Formulir Unggah Berkas (Hanya jika belum mengumpulkan) --}}
+            @if (!$submission)
                 <form action="{{ route('mahasiswa.assignments.submissions.store', $assignment) }}" method="POST" enctype="multipart/form-data" class="form-stack">
                     @csrf
 
-                    <x-form-field name="file" label="{{ $submission ? 'Ganti Berkas Jawaban' : 'Unggah Berkas Jawaban' }}" hint="Format PDF, DOC, DOCX, ZIP, atau RAR. Maksimal 20 MB." :required="true">
+                    <x-form-field name="file" label="Unggah Berkas Jawaban" hint="Format PDF, DOC, DOCX, ZIP, atau RAR. Maksimal 20 MB." :required="true">
                         <x-file-input id="file" name="file" accept=".pdf,.doc,.docx,.zip,.rar" required />
                     </x-form-field>
 
                     <x-form-field name="note" label="Catatan untuk Dosen (Opsional)">
-                        <x-textarea id="note" name="note">{{ old('note', $submission?->note) }}</x-textarea>
+                        <x-textarea id="note" name="note">{{ old('note') }}</x-textarea>
                     </x-form-field>
 
                     <div class="cluster mt-3">
-                        <x-button>{{ $submission ? 'Perbarui Pengumpulan' : 'Kumpulkan Tugas' }}</x-button>
+                        <x-button>Kumpulkan Tugas</x-button>
                     </div>
                 </form>
             @else
-                <p class="muted mt-3">Tugas ini telah dinilai oleh dosen dan tidak dapat diubah kembali.</p>
+                <p class="muted mt-3">✓ Tugas ini telah dikumpulkan dan tidak dapat dikumpulkan ulang.</p>
             @endif
         </x-card>
     </div>

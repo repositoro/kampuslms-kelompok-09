@@ -40,6 +40,11 @@ class SubmissionService
             Storage::disk('local')->delete($oldFilePath);
         }
 
-        return [$submission->load(['student', 'grade']), $created];
+        $submission = $submission->load(['student', 'grade', 'assignment.course.lecturer']);
+
+        // Memicu notifikasi ke dosen bahwa mahasiswa telah mengumpulkan tugas
+        \App\Events\SubmissionSubmitted::dispatch($submission);
+
+        return [$submission, $created];
     }
 }
