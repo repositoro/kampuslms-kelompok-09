@@ -21,7 +21,7 @@ class CourseController extends Controller
             'dosen' => $user->taughtCourses(),
             'mahasiswa' => $user->courses(),
             default => abort(403),
-        })->with('lecturer')->paginate(15);
+        })->with('lecturer')->paginate(15)->withQueryString();
 
         return view('courses.index', compact('courses'));
     }
@@ -31,35 +31,56 @@ class CourseController extends Controller
         Gate::authorize('view', $course);
 
         $user = request()->user();
-        $course->load([
-            'lecturer',
-            'students',
-            'materials',
-            'assignments' => function ($query) use ($user) {
-                if ($user->role === 'mahasiswa') {
-                    $query->where('status', 'published');
-                }
-
-                $query->with(['submissions' => fn ($submissions) => $submissions
+        $course->load('lecturer');
+        $canManageEnrollment = Gate::allows('manageEnrollment', $course);
+        $students = $canManageEnrollment
+            ? $course->students()
+                ->where('role', 'mahasiswa')
+                ->orderBy('name')
+                ->paginate(10, ['users.id', 'users.name', 'users.email'], 'students_page')
+                ->withQueryString()
+            : collect();
+        $availableStudents = $canManageEnrollment
+            ? User::query()
+                ->where('role', 'mahasiswa')
+                ->whereDoesntHave('courses', fn ($query) => $query->where('courses.id', $course->id))
+                ->orderBy('name')
+                ->paginate(10, ['id', 'name', 'email'], 'available_students_page')
+                ->withQueryString()
+            : collect();
+        $materials = $course->materials()
+            ->latest()
+            ->paginate(10, ['*'], 'materials_page')
+            ->withQueryString();
+        $assignmentsQuery = $course->assignments();
+        if ($user->role === 'mahasiswa') {
+            $assignmentsQuery
+                ->where('status', 'published')
+                ->with(['submissions' => fn ($submissions) => $submissions
                     ->where('user_id', $user->id)
                     ->with('grade')]);
-            },
-        ]);
-        $canManageEnrollment = Gate::allows('manageEnrollment', $course);
-        $availableStudents = $canManageEnrollment
-            ? User::where('role', 'mahasiswa')
-                ->whereNotIn('id', $course->students->modelKeys())
-                ->orderBy('name')
-                ->get()
-            : collect();
+        }
+        $assignments = $assignmentsQuery
+            ->latest()
+            ->paginate(10, ['*'], 'assignments_page')
+            ->withQueryString();
 
-        return view('courses.show', compact('course', 'canManageEnrollment', 'availableStudents'));
+        return view('courses.show', compact(
+            'course',
+            'canManageEnrollment',
+            'availableStudents',
+            'students',
+            'materials',
+            'assignments',
+        ));
     }
 
     public function create()
     {
         Gate::authorize('create', Course::class);
-        $lecturers = User::where('role', 'dosen')->orderBy('name')->get();
+        $lecturers = User::where('role', 'dosen')->orderBy('name')
+            ->paginate(15, ['id', 'name'], 'lecturers_page')
+            ->withQueryString();
 
         return view('courses.create', compact('lecturers'));
     }
@@ -75,7 +96,9 @@ class CourseController extends Controller
     public function edit(Course $course)
     {
         Gate::authorize('update', $course);
-        $lecturers = User::where('role', 'dosen')->orderBy('name')->get();
+        $lecturers = User::where('role', 'dosen')->orderBy('name')
+            ->paginate(15, ['id', 'name'], 'lecturers_page')
+            ->withQueryString();
 
         return view('courses.edit', compact('course', 'lecturers'));
     }

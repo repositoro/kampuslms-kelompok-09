@@ -98,13 +98,13 @@
     @else
         <x-card title="Pengumpulan mahasiswa">
             <p class="muted">{{ $submissionCount }} berkas terkumpul · {{ $gradedSubmissionCount }} sudah dinilai</p>
-            @if ($assignment->submissions->isEmpty())
+            @if ($submissions->isEmpty())
                 <x-empty-state title="Belum ada pengumpulan" />
             @else
                 <x-table>
                     <thead><tr><th>Mahasiswa</th><th>Waktu kumpul</th><th>Status</th><th>Nilai</th><th>Unduh</th></tr></thead>
                     <tbody>
-                        @foreach ($assignment->submissions as $studentSubmission)
+                        @foreach ($submissions as $studentSubmission)
                             <tr>
                                 <td data-label="Mahasiswa">{{ $studentSubmission->student->name }}</td>
                                 <td data-label="Waktu kumpul">{{ $studentSubmission->submitted_at->format('d M Y, H:i') }}</td>
@@ -140,6 +140,7 @@
                         @endforeach
                     </tbody>
                 </x-table>
+                {{ $submissions->links('vendor.pagination.simple') }}
             @endif
             @if (Route::has('dosen.courses.grades.index') && Gate::allows('viewCourse', [App\Models\Grade::class, $assignment->course]))
                 <p><a href="{{ route('dosen.courses.grades.index', $assignment->course) }}">Buka rekap nilai mata kuliah</a></p>

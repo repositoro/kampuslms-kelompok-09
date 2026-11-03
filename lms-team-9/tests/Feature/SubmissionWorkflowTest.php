@@ -141,6 +141,9 @@ class SubmissionWorkflowTest extends TestCase
         ]);
         Storage::disk('local')->put($submission->file_path, 'private');
 
+        $this->get("/submissions/{$submission->id}/download")
+            ->assertRedirect(route('login'));
+
         $this->actingAs($otherStudent)
             ->get("/dosen/assignments/{$assignment->id}")
             ->assertOk()

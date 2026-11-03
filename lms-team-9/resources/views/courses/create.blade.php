@@ -21,6 +21,7 @@
                             <option value="{{ $lecturer->id }}" @selected(old('lecturer_id') == $lecturer->id)>{{ $lecturer->name }}</option>
                         @endforeach
                     </x-select>
+                    {{ $lecturers->links('vendor.pagination.simple') }}
                 </x-form-field>
                 <x-form-field name="status" label="Status">
                     <x-select id="status" name="status">

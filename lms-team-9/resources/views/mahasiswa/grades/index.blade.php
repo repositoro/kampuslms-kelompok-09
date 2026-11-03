@@ -17,5 +17,6 @@
                 @endforelse
             </tbody>
         </x-table>
+        {{ $grades->links('vendor.pagination.simple') }}
     </x-card>
 </x-layout>
