@@ -18,6 +18,7 @@
             @empty
                 <x-empty-state title="Belum terdaftar di mata kuliah" />
             @endforelse
+            {{ $courses->links('vendor.pagination.simple') }}
         </x-card>
         <x-card title="Tugas mendekati tenggat">
             @forelse ($upcomingAssignments as $assignment)
