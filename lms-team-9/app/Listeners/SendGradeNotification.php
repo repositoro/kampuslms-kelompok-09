@@ -17,7 +17,9 @@ class SendGradeNotification implements ShouldQueue
 
     public function handle(GradeRecorded $event): void
     {
-        $student = $event->grade->submission->student;
+        // Pencegahan lazy loading violation saat berjalan di antrean background worker
+        $event->grade->loadMissing('submission.student');
+        $student = $event->grade->submission?->student;
 
         if ($student) {
             $student->notify(new GradeNotification($event->grade));
