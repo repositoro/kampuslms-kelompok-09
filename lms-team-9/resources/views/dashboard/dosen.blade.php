@@ -3,7 +3,7 @@
     <div class="stats-grid">
         <x-card>
             <p class="stat-label">Mata kuliah diampu</p>
-            <p class="stat-value">{{ $courses->count() }}</p>
+            <p class="stat-value">{{ $courses->total() }}</p>
         </x-card>
         <x-card>
             <p class="stat-label">Pengumpulan belum dinilai</p>
@@ -26,5 +26,6 @@
         @empty
             <x-empty-state title="Belum ada mata kuliah yang diampu" />
         @endforelse
+        {{ $courses->links('vendor.pagination.simple') }}
     </x-card>
 </x-layout>

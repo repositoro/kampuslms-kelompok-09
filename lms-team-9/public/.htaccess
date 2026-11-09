@@ -5,6 +5,14 @@
 
     RewriteEngine On
 
+    # Block dotfiles before HTTPS redirects and static-file handling.
+    RewriteRule (^|/)\.(?!well-known(?:/|$)) - [F,L,NC]
+
+    # Gabungan pengecekan untuk Proxy (Railway) dan Server Lokal (Laragon)
+    RewriteCond %{HTTP:X-Forwarded-Proto} =http [OR]
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

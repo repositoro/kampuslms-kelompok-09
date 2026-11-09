@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\User;
+use App\Support\DashboardCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -34,6 +35,7 @@ class EnrollmentController extends Controller
         $course->students()->attach($validated['user_id'], [
             'enrolled_at' => now(),
         ]);
+        DashboardCache::invalidate();
 
         return redirect()->back()->with('success', 'Mahasiswa berhasil didaftarkan.');
     }
@@ -52,6 +54,7 @@ class EnrollmentController extends Controller
 
         // Menghapus hubungan relasi di tabel pivot course_user
         $course->students()->detach($student->id);
+        DashboardCache::invalidate();
 
         return redirect()->back()->with('success', 'Mahasiswa berhasil dikeluarkan dari mata kuliah.');
     }

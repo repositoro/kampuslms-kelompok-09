@@ -30,7 +30,7 @@ class AssignmentController extends Controller
         } else {
             $assignments->withCount(['submissions', 'grades']);
         }
-        $assignments = $assignments->latest()->paginate(15);
+        $assignments = $assignments->latest()->paginate(15)->withQueryString();
 
         return view('dosen.assignments.index', compact('course', 'assignments'));
     }
@@ -67,6 +67,7 @@ class AssignmentController extends Controller
         $assignment->load('course');
         $user = auth()->user();
         $submission = null;
+        $submissions = collect();
         $canSubmit = false;
 
         if ($user->role === 'mahasiswa') {
@@ -78,9 +79,14 @@ class AssignmentController extends Controller
                 && ($assignment->allow_late || now()->lessThanOrEqualTo($assignment->due_at))
                 && ! $submission;
         } else {
-            $assignment->load(['submissions.student', 'submissions.grade']);
-            $submissionCount = $assignment->submissions->count();
-            $gradedSubmissionCount = $assignment->submissions->filter(fn ($submission) => $submission->grade !== null)->count();
+            $assignment->loadCount(['submissions', 'grades']);
+            $submissionCount = $assignment->submissions_count;
+            $gradedSubmissionCount = $assignment->grades_count;
+            $submissions = $assignment->submissions()
+                ->with(['student', 'grade'])
+                ->latest('submitted_at')
+                ->paginate(15)
+                ->withQueryString();
         }
         $submissionCount ??= 0;
         $gradedSubmissionCount ??= 0;
@@ -88,6 +94,7 @@ class AssignmentController extends Controller
         return view('dosen.assignments.show', compact(
             'assignment',
             'submission',
+            'submissions',
             'canSubmit',
             'submissionCount',
             'gradedSubmissionCount',
@@ -99,7 +106,15 @@ class AssignmentController extends Controller
     {
         Gate::authorize('viewAny', [Submission::class, $assignment]);
 
-        $assignment->load(['submissions.student', 'submissions.grade']);
+        $assignment->load('course');
+        $assignment->setRelation(
+            'submissions',
+            $assignment->submissions()
+                ->with(['student', 'grade'])
+                ->latest('submitted_at')
+                ->paginate(15)
+                ->withQueryString(),
+        );
 
         return view('dosen.assignments.submissions', compact('assignment'));
     }

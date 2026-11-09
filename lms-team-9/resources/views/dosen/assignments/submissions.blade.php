@@ -31,6 +31,7 @@
                     @endforeach
                 </tbody>
             </x-table>
+            {{ $assignment->submissions->links('vendor.pagination.simple') }}
         @endif
         <p><a href="{{ route('dosen.assignments.show', $assignment) }}">Buka detail tugas untuk memberi nilai</a></p>
     </x-card>

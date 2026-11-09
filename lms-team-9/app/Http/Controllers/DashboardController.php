@@ -6,6 +6,7 @@ use App\Models\Assignment;
 use App\Models\Course;
 use App\Models\Submission;
 use App\Models\User;
+use App\Support\DashboardCache;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -24,12 +25,12 @@ class DashboardController extends Controller
 
     private function adminDashboard()
     {
-        $stats = [
+        $stats = DashboardCache::remember('admin:stats', fn () => [
             'total_users' => User::count(),
             'total_courses' => Course::count(),
             'total_dosen' => User::where('role', 'dosen')->count(),
             'total_mhs' => User::where('role', 'mahasiswa')->count(),
-        ];
+        ]);
 
         return view('dashboard.admin', compact('stats'));
     }
@@ -37,14 +38,23 @@ class DashboardController extends Controller
     private function dosenDashboard(User $user)
     {
         // Ambil daftar mata kuliah diampu beserta jumlah mahasiswa & tugas
-        $courses = $user->taughtCourses()
-            ->withCount(['students', 'assignments'])
-            ->get();
+        $coursesPage = request()->integer('courses_page', 1);
+        $courses = DashboardCache::remember(
+            "lecturer:{$user->id}:courses:{$coursesPage}",
+            fn () => $user->taughtCourses()
+                ->withCount(['students', 'assignments'])
+                ->orderBy('name')
+                ->paginate(10, ['*'], 'courses_page')
+                ->withQueryString(),
+        );
 
         // Jumlah submission tugas mahasiswa yang belum diberi nilai
-        $pendingGradesCount = Submission::whereHas('assignment.course', function ($q) use ($user) {
-            $q->where('lecturer_id', $user->id);
-        })->doesntHave('grade')->count();
+        $pendingGradesCount = DashboardCache::remember(
+            "lecturer:{$user->id}:pending-grades",
+            fn () => Submission::whereHas('assignment.course', function ($q) use ($user) {
+                $q->where('lecturer_id', $user->id);
+            })->doesntHave('grade')->count(),
+        );
 
         return view('dashboard.dosen', compact('courses', 'pendingGradesCount'));
     }
@@ -52,7 +62,15 @@ class DashboardController extends Controller
     private function mahasiswaDashboard(User $user)
     {
         // Ambil mata kuliah yang diikuti
-        $courses = $user->courses()->with('lecturer')->get();
+        $coursesPage = request()->integer('courses_page', 1);
+        $courses = DashboardCache::remember(
+            "student:{$user->id}:courses:{$coursesPage}",
+            fn () => $user->courses()
+                ->with('lecturer')
+                ->orderBy('courses.name')
+                ->paginate(10, ['courses.*'], 'courses_page')
+                ->withQueryString(),
+        );
 
         // Ambil 5 tugas mendatang dari mata kuliah yang diikuti
         $upcomingAssignments = Assignment::whereHas('course.students', function ($q) use ($user) {

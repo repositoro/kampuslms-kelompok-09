@@ -15,7 +15,7 @@ class MaterialController extends Controller
     public function index(Course $course)
     {
         Gate::authorize('view', $course);
-        $materials = $course->materials()->with('course')->latest()->paginate(15);
+        $materials = $course->materials()->with('course')->latest()->paginate(15)->withQueryString();
 
         return view('dosen.materials.index', compact('course', 'materials'));
     }
@@ -37,7 +37,7 @@ class MaterialController extends Controller
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $data['type'] = 'file';
-            
+
             // Disimpan di storage/app/private/materials/{course_id}/ dengan nama fisik acak
             $data['file_path'] = $file->store("materials/{$course->id}", 'local');
             $data['original_name'] = basename($file->getClientOriginalName());
@@ -77,7 +77,7 @@ class MaterialController extends Controller
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $data['type'] = 'file';
-            
+
             // Disimpan di storage/app/private/materials/{course_id}/
             $data['file_path'] = $file->store("materials/{$material->course_id}", 'local');
             $data['original_name'] = basename($file->getClientOriginalName());
