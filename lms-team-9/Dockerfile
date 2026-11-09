@@ -21,6 +21,7 @@ RUN apt-get update \
         libpng-dev \
         libxml2-dev \
         libzip-dev \
+        supervisor \
         unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" bcmath exif gd intl mbstring pdo_mysql pcntl zip \
@@ -28,6 +29,13 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+ENV APP_NAME=KampusLMS \
+    APP_ENV=production \
+    APP_DEBUG=false \
+    SESSION_SECURE_COOKIE=true \
+    SESSION_DRIVER=file \
+    QUEUE_CONNECTION=database
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN a2enmod rewrite \
@@ -38,6 +46,8 @@ RUN a2enmod rewrite \
 WORKDIR /var/www/html
 COPY . .
 COPY --from=frontend /app/public/build ./public/build
+COPY docker/supervisord.conf /etc/supervisor/conf.d/kampuslms.conf
+COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
 RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader \
     && mkdir -p storage/app/private storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
