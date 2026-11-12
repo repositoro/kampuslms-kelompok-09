@@ -42,6 +42,7 @@
                             @endforeach
                         </x-select>
                     </x-form-field>
+                    {{ $availableStudents->links('vendor.pagination.simple') }}
                     @error('student')<p class="field-error">{{ $message }}</p>@enderror
                     <x-button :disabled="$availableStudents->isEmpty()">Daftarkan mahasiswa</x-button>
                 </form>
@@ -54,7 +55,7 @@
             <x-table>
                 <thead><tr><th>Nama mahasiswa</th><th>Email</th><th>Aksi</th></tr></thead>
                 <tbody>
-                    @forelse ($course->students->where('role', 'mahasiswa') as $student)
+                    @forelse ($students as $student)
                         <tr>
                             <td data-label="Nama mahasiswa">{{ $student->name }}</td>
                             <td data-label="Email">{{ $student->email }}</td>
@@ -72,12 +73,13 @@
                     @endforelse
                 </tbody>
             </x-table>
+            {{ $students->links('vendor.pagination.simple') }}
         </x-card>
     @endif
 
     {{-- Kartu Daftar Materi Perkuliahan --}}
     <x-card title="Materi perkuliahan">
-        @forelse ($course->materials as $material)
+        @forelse ($materials as $material)
             <div class="list-row">
                 <div>
                     <strong>{{ $material->title }}</strong>
@@ -96,12 +98,13 @@
         @empty
             <x-empty-state title="Belum ada materi perkuliahan" />
         @endforelse
+        {{ $materials->links('vendor.pagination.simple') }}
     </x-card>
 
     {{-- Kartu Daftar Tugas --}}
     <x-card title="Tugas">
-        @forelse ($course->assignments as $assignment)
-            @php($submission = $assignment->submissions->first())
+        @forelse ($assignments as $assignment)
+            @php($submission = auth()->user()->role === 'mahasiswa' ? $assignment->submissions->first() : null)
             <div class="list-row">
                 <div>
                     {{-- Tautan dinamis ke detail tugas sesuai role user --}}
@@ -122,5 +125,6 @@
         @empty
             <x-empty-state title="Belum ada tugas" />
         @endforelse
+        {{ $assignments->links('vendor.pagination.simple') }}
     </x-card>
 </x-layout>

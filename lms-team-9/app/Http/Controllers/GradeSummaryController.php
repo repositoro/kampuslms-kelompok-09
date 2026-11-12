@@ -16,7 +16,9 @@ class GradeSummaryController extends Controller
         $grades = Grade::with(['submission.student', 'submission.assignment'])
             ->whereHas('submission.assignment', fn ($query) => $query->where('course_id', $course->id))
             ->latest('graded_at')
-            ->get();
+            ->latest('id')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('dosen.grades.index', compact('course', 'grades'));
     }
@@ -26,7 +28,9 @@ class GradeSummaryController extends Controller
         $grades = Grade::with(['submission.assignment.course'])
             ->whereHas('submission', fn ($query) => $query->where('user_id', $request->user()->id))
             ->latest('graded_at')
-            ->get();
+            ->latest('id')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('mahasiswa.grades.index', compact('grades'));
     }
