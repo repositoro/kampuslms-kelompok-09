@@ -55,4 +55,4 @@ RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoload
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "set -eu; port=\"${PORT:-8080}\"; mkdir -p storage/app/private storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache; chown -R www-data:www-data storage bootstrap/cache; sed -ri \"s/^Listen .*/Listen ${port}/\" /etc/apache2/ports.conf; sed -ri \"s#<VirtualHost \\*:.*>#<VirtualHost *:${port}>#\" /etc/apache2/sites-available/000-default.conf; exec apache2-foreground"]
+CMD ["sh", "-c", "set -eu; port=\"${PORT:-8080}\"; mkdir -p storage/app/private storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache; chown -R www-data:www-data storage bootstrap/cache; sed -ri \"s/^Listen .*/Listen ${port}/\" /etc/apache2/ports.conf; sed -ri \"s#<VirtualHost \\*:.*>#<VirtualHost *:${port}>#\" /etc/apache2/sites-available/000-default.conf; exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf"]
