@@ -128,7 +128,7 @@ Akses aplikasi di browser pada: http://localhost:8000 atau http://127.0.0.1:8000
 ***
 
 ## Pembagian Peran ##
-* Yiesan Daffa Azrikfi : 
-* Zaskiya Salwa Nafitri : 
-* Vera Friska : 
-* Toro Ababil Tamami Darojat : Deploy, Build Migrations, Build Frontend
+* Yiesan Daffa Azrikfi : Backend / Frontend Developer
+* Zaskiya Salwa Nafitri : Backend / Frontend Developer
+* Vera Friska : Backend / Frontend Developer
+* Toro Ababil Tamami Darojat : Lead Developer | Arsitektur Laravel 12, skema database & migrasi, autentikasi Sanctum, middleware role, komponen Blade UI, CI/CD & deployment Railway
