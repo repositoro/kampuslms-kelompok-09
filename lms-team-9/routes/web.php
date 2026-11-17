@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\AcademicEventController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\CalendarExportController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dosen\AssignmentController;
@@ -39,6 +42,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard Utama
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/calendar', CalendarController::class)->name('calendar.index');
+    Route::get('/calendar/export', CalendarExportController::class)->name('calendar.export');
 
     // Notifikasi (Milestone M3 Langkah 4 & 5)
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])
@@ -60,6 +65,10 @@ Route::middleware(['auth'])->group(function () {
     // Group Admin
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::resource('users', UserController::class);
+        Route::get('/academic-events/create', [AcademicEventController::class, 'create'])
+            ->name('academic-events.create');
+        Route::post('/academic-events', [AcademicEventController::class, 'store'])
+            ->name('academic-events.store');
     });
 
     // Group Dosen
