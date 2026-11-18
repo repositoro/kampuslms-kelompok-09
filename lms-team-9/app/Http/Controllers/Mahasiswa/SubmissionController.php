@@ -5,12 +5,17 @@ namespace App\Http\Controllers\Mahasiswa;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSubmissionRequest;
 use App\Models\Assignment;
+use App\Models\Submission;
 use App\Services\SubmissionService;
+use Illuminate\Support\Facades\Gate;
 
 class SubmissionController extends Controller
 {
     public function store(StoreSubmissionRequest $request, Assignment $assignment, SubmissionService $submissionService)
     {
+        // Otorisasi eksplisit di controller: Pastikan mahasiswa terdaftar di mata kuliah dan tugas published
+        Gate::authorize('create', [Submission::class, $assignment]);
+
         [$submission, $created] = $submissionService->store(
             $assignment,
             $request->user(),
