@@ -127,6 +127,12 @@ Akses aplikasi di browser pada: http://localhost:8000 atau http://127.0.0.1:8000
 
 ***
 
+## Aplikasi live
+
+[KampusLMS — https://kampuslms-kelompok-09-production.up.railway.app/](https://kampuslms-kelompok-09-production.up.railway.app/)
+
+Panduan deployment VPS alternatif ada di [`lms-team-9/docs/deployment.md`](lms-team-9/docs/deployment.md).
+
 ## Pembagian Peran ##
 * Yiesan Daffa Azrikfi : 
 * Zaskiya Salwa Nafitri : 

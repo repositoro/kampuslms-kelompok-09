@@ -1,3 +1,157 @@
+## Deployment publik dengan Docker dan HTTPS otomatis
+
+Panduan ini menjalankan aplikasi di satu VPS Ubuntu dengan Docker. Caddy menjadi reverse proxy dan memperoleh/memperbarui sertifikat TLS otomatis. Database SQLite, berkas unggahan, dan data sertifikat disimpan di Docker volumes sehingga bertahan saat container aplikasi diganti. Queue worker berjalan dalam container terpisah dari web.
+
+> **Status:** aplikasi publik saat ini tersedia di [kampuslms-kelompok-09-production.up.railway.app](https://kampuslms-kelompok-09-production.up.railway.app/); pemeriksaan dari workspace mendapatkan HTTP 200 pada halaman utama dan endpoint `/up` melalui HTTPS. Skrip `deploy.sh` di bawah adalah prosedur alternatif untuk self-host di VPS Ubuntu, bukan mekanisme deploy Railway. Akses ke konfigurasi/proyek Railway tidak tersedia dari workspace ini.
+
+### Spesifikasi server
+
+- Ubuntu Server 24.04 LTS, arsitektur 64-bit.
+- Minimum untuk demonstrasi/beban ringan: 2 vCPU, RAM 4 GB, SSD 40 GB.
+- Docker Engine, Git, dan curl.
+- Domain publik dengan rekaman DNS `A` yang menunjuk ke alamat IPv4 VPS. Persyaratan ini hanya untuk prosedur VPS di bawah; domain Railway yang sedang aktif dikelola oleh Railway.
+- Port TCP 80 dan 443 dapat diakses dari internet; port UDP 443 opsional untuk HTTP/3. Batasi SSH (TCP 22) ke alamat administrator bila memungkinkan.
+- SQLite dalam Docker volume sesuai untuk deployment satu server dan beban ringan. Untuk banyak worker atau beberapa app server, gunakan database terkelola dan tinjau konfigurasi storage bersama terlebih dahulu.
+
+### Langkah deployment pertama dari nol
+
+#### 1. Siapkan VPS dan DNS
+
+Buat VPS Ubuntu 24.04 dan catat alamat IP publiknya. Di pengelola DNS domain, buat rekaman `A` untuk nama host aplikasi, misalnya `lms.example.edu`, dengan nilai IP VPS. Tunggu propagasi DNS.
+
+Masuk ke VPS melalui SSH, lalu pasang Docker dan alat yang dibutuhkan:
+
+```bash
+sudo apt update
+sudo apt install -y docker.io git curl
+sudo systemctl enable --now docker
+sudo usermod -aG docker "$USER"
+```
+
+Keluar lalu masuk kembali melalui SSH agar keanggotaan grup Docker berlaku, kemudian verifikasi:
+
+```bash
+docker info
+```
+
+Konfigurasikan firewall provider dan firewall VPS agar port 80/tcp, 443/tcp, dan (opsional) 443/udp terbuka. Jangan membuka port aplikasi 8080 ke internet; hanya container Caddy yang memublikasikan port.
+
+#### 2. Ambil source code
+
+```bash
+git clone https://github.com/ToroAbabil/kampuslms-kelompok-09.git
+cd kampuslms-kelompok-09/lms-team-9
+```
+
+#### 3. Buat environment production
+
+Salin template, lalu edit berkas di server. Jangan commit atau mengirim berkas ini:
+
+```bash
+cp .env.example .env.production
+chmod 600 .env.production
+nano .env.production
+```
+
+Atur sekurang-kurangnya nilai berikut. Buat `APP_KEY` unik dengan `php artisan key:generate --show` jika PHP tersedia di server, atau dengan `printf 'base64:%s\n' "$(openssl rand -base64 32)"`; salin hasilnya sebagai nilai `APP_KEY`.
+
+```dotenv
+APP_ENV=production
+APP_KEY=base64:GANTI_DENGAN_KUNCI_UNIK
+APP_DEBUG=false
+APP_URL=https://lms.example.edu
+LOG_CHANNEL=stack
+LOG_LEVEL=error
+DB_CONNECTION=sqlite
+DB_DATABASE=/var/www/html/database/data/database.sqlite
+CACHE_STORE=database
+SESSION_DRIVER=database
+SESSION_SECURE_COOKIE=true
+QUEUE_CONNECTION=database
+```
+
+Ganti `lms.example.edu` dengan domain sebenarnya di `APP_URL` dan perintah deployment. Gunakan password demo non-default jika seeder produksi memang diperlukan; jangan gunakan akun/password demo development. Atur SMTP secara terpisah jika email produksi dibutuhkan. Skrip deployment hanya menjalankan migrasi, bukan seeder.
+
+#### 4. Build, migrasikan, dan aktifkan HTTPS
+
+Pastikan DNS sudah mengarah ke VPS dan port 80/443 terbuka, lalu jalankan dari direktori aplikasi:
+
+```bash
+DOMAIN=lms.example.edu bash ./deploy.sh
+```
+
+Skrip memvalidasi konfigurasi production, membangun image aplikasi, menjalankan migrasi, menyalakan worker antrean dalam container terpisah, memasang Caddy, lalu memeriksa `https://<domain>/up`. Caddy perlu dapat menerima koneksi pada port 80/443 untuk menerbitkan sertifikat. Jangan jalankan skrip ini untuk service Railway atau dari workstation Windows; jalankan hanya pada VPS Linux yang memang akan di-self-host.
+
+Verifikasi hasil:
+
+```bash
+curl -I https://lms.example.edu
+docker ps
+docker ps --filter name=kampuslms-queue
+docker logs --tail 50 kampuslms-queue
+```
+
+Setelah health check berhasil, cantumkan URL HTTPS aktual pada bagian **Aplikasi live** di README. Jangan mengganti placeholder dengan `kampuslms.test`, `localhost`, atau URL yang belum diverifikasi.
+
+### Deployment ulang
+
+Jalankan di VPS dari direktori aplikasi:
+
+```bash
+git pull --ff-only
+DOMAIN=lms.example.edu bash ./deploy.sh
+```
+
+Skrip membangun image baru, mengganti container aplikasi dan queue worker, menjalankan migrasi, lalu memasang ulang Caddy. Docker volumes `kampuslms-database`, `kampuslms-storage`, `kampuslms-caddy-data`, dan `kampuslms-caddy-config` tidak dihapus saat deployment ulang. Jangan menghapus volume tersebut saat membersihkan container. Buat backup sebelum migrasi yang berisiko; untuk SQLite, hentikan sementara container `kampuslms` dan `kampuslms-queue`, lalu salin file database dari volume sebelum meneruskan.
+
+### Membaca log dan status layanan
+
+```bash
+# Log Apache dari container aplikasi
+docker logs --tail 200 kampuslms
+docker logs --follow kampuslms
+
+# Log queue worker yang berjalan di container terpisah
+docker logs --tail 200 kampuslms-queue
+docker logs --follow kampuslms-queue
+docker top kampuslms-queue
+
+# Log Caddy, termasuk kegagalan DNS atau penerbitan sertifikat
+docker logs --tail 200 kampuslms-proxy
+docker logs --follow kampuslms-proxy
+
+# Log Laravel di volume storage
+docker exec kampuslms sh -c 'tail -n 200 storage/logs/laravel.log'
+
+# Status migrasi
+docker exec --user www-data kampuslms php artisan migrate:status
+```
+
+Apache berjalan di container aplikasi dan queue worker di container terpisah; keluaran keduanya dapat dibaca dengan `docker logs`. Log Laravel juga tersedia di `storage/logs/laravel.log`. Hindari menyalin log yang berisi data pengguna atau rahasia ke laporan publik.
+
+### Masalah yang ditemui saat persiapan dan cara mengatasinya
+
+| Masalah/temuan | Dampak | Cara mengatasi |
+|---|---|---|
+| Docker CLI tidak terpasang pada workstation Windows tempat panduan disiapkan. | Image VPS tidak dapat dibangun atau diuji di workstation ini. Aplikasi live Railway tetap dapat diakses, tetapi deployment VPS belum diuji end-to-end. | Jalankan skrip di VPS Ubuntu setelah Docker Engine terpasang dan `docker info` berhasil. Validasi lokal skrip mencakup pemeriksaan sintaks Bash dan simulasi Docker; verifikasi nyata VPS tetap diperlukan. |
+| URL `kampuslms.test` dalam catatan pemeriksaan lama adalah domain lokal, bukan domain yang dapat diakses publik atau memperoleh sertifikat publik. | Tautan lokal tidak memenuhi syarat aplikasi live HTTPS. | Siapkan domain publik, arahkan DNS `A` ke IP VPS, buka port 80/443, lalu gunakan nama domain yang sama pada `APP_URL` dan `DOMAIN`. |
+| Template `.env.example` memakai `APP_URL=http://localhost` dan database SQLite dengan lokasi relatif. | URL produksi/cookie HTTPS dan lokasi database persisten tidak sesuai untuk container produksi. | Gunakan `.env.production` yang tidak dilacak Git; set `APP_URL=https://<domain>`, `SESSION_SECURE_COOKIE=true`, dan lokasi database absolut pada Docker volume seperti contoh di atas. |
+| Dockerfile menjalankan `apache2-foreground` langsung; konfigurasi Supervisor yang disalin ke image tidak dijalankan oleh perintah container saat ini. | Queue worker tidak otomatis hidup hanya karena konfigurasi Supervisor ada di image. | Skrip menjalankan `queue:work` dalam container `kampuslms-queue` tersendiri, dengan database dan storage volume yang sama; tidak perlu mengubah source aplikasi. |
+| Konfigurasi dan akses proyek Railway tidak tersedia di workspace ini. | URL live berhasil diperiksa secara publik, tetapi variabel environment, sumber database, backup, dan riwayat deployment Railway tidak dapat diverifikasi. | Periksa deployment/logs dan environment variables dari Railway dashboard/CLI milik pemilik proyek; jangan mengirim password, private key, atau token melalui chat/repository. README kini mencantumkan URL HTTPS yang telah diuji. |
+
+### Troubleshooting deployment
+
+| Gejala | Pemeriksaan dan solusi |
+|---|---|
+| `docker info` gagal atau skrip melaporkan daemon tidak dapat diakses | Jalankan `sudo systemctl status docker`; aktifkan dengan `sudo systemctl enable --now docker`. Jika baru menambahkan user ke grup `docker`, logout/login ulang. |
+| Caddy gagal menerbitkan sertifikat atau HTTPS health check timeout | Pastikan DNS publik menunjuk ke IP VPS (`dig +short <domain>`), port TCP 80/443 terbuka di firewall provider dan VPS, serta tidak ada layanan lain yang memakai port tersebut. Baca `docker logs --tail 200 kampuslms-proxy`. |
+| Migrasi gagal atau SQLite tidak dapat ditulis | Pastikan `.env.production` memakai `DB_CONNECTION=sqlite` dan lokasi absolut yang diwajibkan skrip. Periksa `docker logs kampuslms`; skrip mengatur pemilik direktori database ke `www-data` sebelum migrasi. |
+| Queue worker berhenti | Periksa `docker ps -a --filter name=kampuslms-queue` dan `docker logs --tail 200 kampuslms-queue`. Pastikan migrasi tabel jobs berhasil; setelah memperbaiki penyebabnya jalankan ulang deployment. |
+| Migrasi gagal atau tabel migrasi tidak ditemukan | Pastikan volume database hanya dipasang pada `/var/www/html/database/data`; jangan menutupi direktori `/var/www/html/database` yang berisi file migrasi. Skrip menggunakan mount subdirektori agar file migrasi tetap tersedia. |
+| Perubahan source tidak tampak setelah `git pull` | Pastikan pull dilakukan pada branch yang benar dan build selesai tanpa error; skrip membangun image dari source lokal sebelum mengganti container. Periksa `docker ps` dan `docker logs kampuslms`. |
+
+> Bagian checklist di bawah merupakan catatan pemeriksaan lingkungan Laragon/WSL sebelumnya, bukan langkah menjalankan deployment Docker VPS di atas. Untuk deployment VPS, gunakan container `kampuslms-queue`; konfigurasi Supervisor yang disalin ke image tidak dijalankan oleh `CMD` Dockerfile saat ini.
+
 ## Periksa Keamanan Produksi
 1. APP_DEBUG=false
    Sudah di ubah di env
@@ -16,6 +170,12 @@
    php artisan tinker --execute="dump(config('app.env'), config('app.debug'));"
    ```
 3. curl.exe -k -I https://kampuslms.test/kampuslms-kelompok-09/lms-team-9/public/.env → 404 atau 403, tidak boleh 200/
+
+   Uji file tersembunyi (termasuk `.gitignore`) pada domain publik:
+   ```
+   curl.exe -sS -o NUL -w "%{http_code}`n" https://kampuslms-kelompok-09-production.up.railway.app/storage/debugbar/.gitignore
+   ```
+   Hasil yang diperiksa saat ini: `404`. Aturan `.htaccess` juga menolak dotfiles dengan `403`; jalankan ulang pemeriksaan setelah perubahan source ter-deploy.
 
 Hasil  
 HTTP/1.1 404 Not Found
@@ -61,7 +221,7 @@ DB_HOST=127.0.0.1
 DB_PORT=3306  
 DB_DATABASE=kampuslms  
 DB_USERNAME=kampuslms_user  
-DB_PASSWORD=RahasiaKampus2026
+DB_PASSWORD=GANTI_DENGAN_PASSWORD_UNIK
 
 8.  Akun demo memakai kata sandi yang berbeda dari contoh di dokumentasi
 
@@ -71,7 +231,7 @@ DB_PASSWORD=RahasiaKampus2026
 
 - Login menggunakan akun demo. Coba cek di file DemoAccountSeeder.php untuk melihat email akun demo (biasanya admin@kampuslms.test atau dosen@kampuslms.test).
 
-- Masukkan password: DemoRahasia123! (sesuai yang Anda set di .env).
+- Masukkan password demo non-default yang Anda set di `.env`; jangan menyalin nilainya ke dokumentasi atau laporan.
 
 - Jika berhasil masuk ke halaman Dashboard, berarti Ceklis 8 LULUS.
 
@@ -252,7 +412,7 @@ sudo apt install php-cli php-mbstring php-xml php-curl unzip supervisor -y
 3. Cari baris berikut dan ubah nilainya:
    ```env
    DB_USERNAME=kampuslms_user
-   DB_PASSWORD=RahasiaKampus2026!
+   DB_PASSWORD=GANTI_DENGAN_PASSWORD_UNIK
    ```
 4. Simpan file.
 
