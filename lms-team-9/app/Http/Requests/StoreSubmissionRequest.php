@@ -51,9 +51,10 @@ class StoreSubmissionRequest extends FormRequest
     {
         return [
             'file.required' => 'Berkas tugas wajib diunggah.',
-            'file.mimes'    => 'Format berkas harus berupa PDF, DOC, DOCX, ZIP, atau RAR.',
-            'file.max'      => 'Ukuran berkas maksimal adalah 20 MB.',
-            'note.max'      => 'Catatan maksimal 5000 karakter.',
+            'file.mimes' => 'Format berkas harus berupa PDF, DOC, DOCX, ZIP, atau RAR.',
+            'file.extensions' => 'Ekstensi berkas tidak valid, gunakan format PDF, DOC, DOCX, ZIP, atau RAR.',
+            'file.max' => 'Ukuran berkas maksimal adalah 20 MB.',
+            'note.max' => 'Catatan maksimal 5000 karakter.',
         ];
     }
 }
