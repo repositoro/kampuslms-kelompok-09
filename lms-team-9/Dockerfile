@@ -38,7 +38,8 @@ ENV APP_NAME=KampusLMS \
     QUEUE_CONNECTION=database
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN a2enmod rewrite \
+RUN rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.* \
+    && a2enmod mpm_prefork rewrite \
     && sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/*.conf \
     && sed -ri -e "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
     && sed -ri -e 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
@@ -55,4 +56,4 @@ RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoload
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "set -eu; port=\"${PORT:-8080}\"; mkdir -p storage/app/private storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache; chown -R www-data:www-data storage bootstrap/cache; sed -ri \"s/^Listen .*/Listen ${port}/\" /etc/apache2/ports.conf; sed -ri \"s#<VirtualHost \\*:.*>#<VirtualHost *:${port}>#\" /etc/apache2/sites-available/000-default.conf; exec apache2-foreground"]
+CMD ["sh", "-c", "set -eu; port=\"${PORT:-8080}\"; mkdir -p storage/app/private storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache; chown -R www-data:www-data storage bootstrap/cache; sed -ri \"s/^Listen .*/Listen ${port}/\" /etc/apache2/ports.conf; sed -ri \"s#<VirtualHost \\*:.*>#<VirtualHost *:${port}>#\" /etc/apache2/sites-available/000-default.conf; exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf"]

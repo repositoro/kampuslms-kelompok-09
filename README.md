@@ -11,7 +11,7 @@ Cara Instalasi Repository Github
 -VSCode login pake akun github
 - Membuat Folder Kosong, lalu buka terminal
 ```
-git clone https://github.com/ToroAbabil/kampuslms-kelompok-09
+git clone https://github.com/repositoro/kampuslms-kelompok-09
 ```
 Cek Update dari Repository (Sebelum mengupload jalankan ini terlebih dahulu)
 ```
@@ -127,8 +127,14 @@ Akses aplikasi di browser pada: http://localhost:8000 atau http://127.0.0.1:8000
 
 ***
 
+## Aplikasi live
+
+[KampusLMS — https://kampuslms-kelompok-09-production.up.railway.app/](https://kampuslms-kelompok-09-production.up.railway.app/)
+
+Panduan deployment VPS alternatif ada di [`lms-team-9/docs/deployment.md`](lms-team-9/docs/deployment.md).
+
 ## Pembagian Peran ##
 * Yiesan Daffa Azrikfi : 
 * Zaskiya Salwa Nafitri : 
 * Vera Friska : 
-* Toro Ababil Tamami Darojat : 
+* Toro Ababil Tamami Darojat : Deploy, Build Migrations, Build Frontend

@@ -1,6 +1,9 @@
 <a class="nav-link {{ request()->routeIs('dashboard') ? 'is-active' : '' }}" href="{{ route('dashboard') }}">
     <span class="nav-indicator" aria-hidden="true"></span>Dashboard
 </a>
+<a class="nav-link {{ request()->routeIs('calendar.*') ? 'is-active' : '' }}" href="{{ route('calendar.index') }}">
+    <span class="nav-indicator" aria-hidden="true"></span>Kalender
+</a>
 @if (auth()->user()->role === 'admin')
     @if (Route::has('admin.users.index'))
         <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'is-active' : '' }}" href="{{ route('admin.users.index') }}">

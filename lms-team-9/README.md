@@ -55,7 +55,9 @@ API v1 menggunakan prefix `/api/v1`. Login melalui `POST /api/v1/auth/login`, gu
 
 ## Aplikasi live
 
-`[BELUM DIDEPLOY — isi tautan aplikasi setelah tersedia]`
+[KampusLMS — https://kampuslms-kelompok-09-production.up.railway.app/](https://kampuslms-kelompok-09-production.up.railway.app/)
+
+Panduan deployment VPS alternatif: [docs/deployment.md](docs/deployment.md).
 
 ## Antrean (Queue) & Notifikasi Asinkron (Milestone M3)
 
